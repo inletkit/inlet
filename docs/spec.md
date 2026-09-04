@@ -1,6 +1,6 @@
 # Inlet architecture specification
 
-Version 0.1, September 2026. Testnet only. Zero fees.
+Version 0.2, September 2026. Testnet only. Zero fees.
 
 ## 1. Purpose
 
@@ -18,14 +18,14 @@ Inlet is built on Circle rails only: Gateway for unified balances, CCTP V2 for b
 
 ## 3. Trust model
 
-- The user's signature binds every parameter of the deposit: amount, destination, adapter, beneficiary, deadline, refund address.
-- The hub only moves funds along the path the user signed, or back to the user's refund address after the deadline.
-- The receiver only executes the adapter the user signed, for the beneficiary the user signed, with the amount that Circle minted.
+- The deposit address is the commitment. It is derived from the hash of every parameter of the deposit: amount, destination, receiver, adapter, beneficiary, deadline, refund address. Funds only arrive there because the user named that address in the Gateway or CCTP transfer they signed, so no separate Inlet signature is needed.
+- The hub only moves funds along the path the intent names, or back to the intent's refund address after the deadline.
+- The receiver only executes the adapter the intent names, for the beneficiary the intent names, with the amount that Circle minted, and only for messages burned by the hub.
 - A relayer can delay a deposit. It cannot redirect it. If every relayer disappears, the user can sweep, refund, or claim by calling the contracts directly.
 
 ## 4. Deposit intent
 
-An intent is an EIP 712 typed structure signed by the user with the wallet that holds the USDC on the source chain.
+An intent is an EIP 712 typed structure. Its hash under the hub's domain identifies the deposit; the user never signs it directly, because the deposit address derived from it is what the user's Gateway or CCTP transfer names.
 
 ```
 DepositIntent {
@@ -33,6 +33,7 @@ DepositIntent {
   uint32  sourceDomain     // CCTP domain of the source chain
   uint32  destinationDomain
   bytes32 adapterId        // keccak256 of the adapter name, for example "erc4626:v1"
+  bytes32 receiver         // the Inlet receiver on the destination chain
   bytes32 beneficiary      // destination account, left padded EVM address or 32 byte key
   bytes   adapterData      // adapter specific parameters
   uint256 amount           // USDC with 6 decimals
@@ -53,23 +54,23 @@ Every intent has its own deposit address on Arc, derived with CREATE2 from the h
 
 This gives three properties: the user never needs Arc gas, funds map to intents without ambiguity, and sweeping is permissionless.
 
-### 5.2 sweep(intent, signature)
+### 5.2 sweep(intent)
 
-1. Verify the signature against the intent's owner. Reject if the intent was already swept or refunded or if feeBps is not zero.
+1. Reject if the intent was already swept or refunded, if feeBps is not zero, if the deadline has passed, or if the destination or receiver is not registered on the hub.
 2. Deploy the forwarder for the intent hash if it does not exist. The forwarder transfers the balance it received into the hub.
 3. Require the received balance to be at least the intent amount. The full received balance is routed.
 4. Call CCTP V2 depositForBurnWithHook with the destination domain, the mint recipient for that destination, the hook data described in 5.4, the destination caller, a max fee of zero for standard transfers, and the standard finality threshold required on Arc.
 5. Record the intent as swept and emit an event carrying the intent hash and the CCTP nonce.
 
-### 5.3 refund(intent, signature)
+### 5.3 refund(intent)
 
-After the deadline, if the intent has not been swept, anyone can call refund. The hub deploys the forwarder if needed, takes the balance, and burns it through CCTP back to the source domain with the refund recipient as mint recipient.
+After the deadline, anyone can call refund. The hub deploys or flushes the forwarder, takes whatever balance it holds, and burns it through CCTP back to the source domain with the refund recipient as mint recipient. Refund can be called again for funds that arrive late, including after a sweep.
 
 ### 5.4 Hook data
 
 For EVM destinations the mint recipient is the Inlet receiver on that chain and the hook data is an Inlet frame: the ASCII tag `inlet/v1`, the intent hash, the adapter id, the beneficiary, and the adapter data.
 
-For Stellar the mint recipient and destination caller are Circle's CctpForwarder contract, and the hook data uses Circle's composable frame format: a `cctp-forward` frame naming the Inlet Stellar receiver as forward recipient, followed by the same Inlet frame. The exact byte layout is taken from the Circle documentation and verified on testnet with small amounts before any larger transfer.
+For Stellar the mint recipient is Circle's CctpForwarder contract and the hook data follows Circle's forwarder layout: 24 reserved zero bytes, a 4 byte version, the 4 byte length of the forward recipient, the recipient's strkey, then the Inlet frame as the integrator payload. The hub stores the strkey of each registered Stellar receiver. The encoding is verified on testnet with small amounts before any larger transfer.
 
 ### 5.5 Fees
 
@@ -98,7 +99,7 @@ The receiver is the mint recipient for every EVM destination. After the relayer 
 execute does the following:
 
 1. Confirm the message nonce has been consumed on the MessageTransmitter, so only real mints can drive execution.
-2. Parse the burn message: mint recipient must be this receiver; the amount received is the burned amount minus the fee Circle executed.
+2. Parse the burn message: the source domain must be Arc and the message sender must be the hub, the mint recipient must be this receiver, and the amount received is the burned amount minus the fee Circle executed.
 3. Parse the Inlet frame from the hook data. Reject intents that were already executed.
 4. Approve the adapter and call it with the amount, the beneficiary, and the adapter data.
 5. If the adapter call fails, credit the amount to the beneficiary's claimable balance instead. The beneficiary can call `claim()` at any time.
@@ -160,7 +161,7 @@ An MCP server exposes tools: list adapters, quote, create intent (returns the ty
 - Funds are at exactly one of: the deposit address, the hub in transit within a single transaction, a CCTP burn awaiting mint, the receiver's claimable balance, or the protocol position.
 - No intent is swept twice, refunded after sweeping, or executed twice.
 - feeBps is zero.
-- Any party can complete sweep, refund, receive, and claim without the reference relayer.
+- Any party can complete sweep, refund, receive, and claim without the reference relayer, and none of them needs a signature from the user.
 
 ## 12. Demo configuration
 
