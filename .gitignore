@@ -1,0 +1,33 @@
+# dependencies
+node_modules/
+.pnpm-store/
+
+# builds
+dist/
+build/
+.next/
+out/
+coverage/
+*.tsbuildinfo
+
+# foundry
+contracts/out/
+contracts/cache/
+contracts/broadcast/
+
+# rust and soroban
+target/
+
+# runtime data
+data/
+*.db
+*.db-journal
+*.log
+
+# environment
+.env
+.env.*
+!.env.example
+
+# system
+.DS_Store
