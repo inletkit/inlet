@@ -31,3 +31,4 @@ data/
 
 # system
 .DS_Store
+.deployer-address
