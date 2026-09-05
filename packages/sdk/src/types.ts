@@ -24,6 +24,7 @@ export type IntentState =
   | "attested"
   | "executed"
   | "claimable"
+  | "refunding"
   | "refunded"
   | "expired"
   | "failed";
@@ -38,6 +39,8 @@ export interface IntentRecord {
   arcMintTx?: Hex;
   sweepTx?: Hex;
   destinationTx?: Hex;
+  refundTx?: Hex;
+  refundMintTx?: Hex;
   result?: string;
   error?: string;
   createdAt: number;

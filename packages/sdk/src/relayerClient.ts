@@ -1,5 +1,6 @@
 import type { Hex } from "viem";
 import { parseIntent, serializeIntent } from "./intent.js";
+import { serializeBurnIntent, type SignedBurnIntent } from "./gateway.js";
 import type { DepositIntent, IntentRecord, Route } from "./types.js";
 
 export class InletRelayerClient {
@@ -11,6 +12,10 @@ export class InletRelayerClient {
 
   async reportSourceTransaction(hash: Hex, sourceTx: Hex): Promise<IntentRecord> {
     return this.request("POST", `/intents/${hash}/source-tx`, { sourceTx });
+  }
+
+  async submitGateway(hash: Hex, signed: SignedBurnIntent): Promise<IntentRecord> {
+    return this.request("POST", `/intents/${hash}/gateway`, { burnIntent: serializeBurnIntent(signed.burnIntent), signature: signed.signature });
   }
 
   async getIntent(hash: Hex): Promise<IntentRecord> {
