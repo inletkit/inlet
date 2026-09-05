@@ -82,7 +82,7 @@ Version 1 charges nothing. The intent carries a feeBps field, the hub rejects an
 
 ### 6.1 Gateway route
 
-The user holds or creates a Gateway unified balance on the source chain. The SDK builds a Gateway burn intent whose destination domain is Arc and whose destination recipient is the deposit address of the Inlet intent. The user signs the Gateway burn intent and the Inlet intent. The relayer submits the burn intent to the Gateway API, receives the attestation, and submits the mint on Arc. USDC lands at the deposit address in well under a second on Arc.
+The user holds a Gateway unified balance on the source chain, created by one deposit into Circle's GatewayWallet contract that becomes spendable once the source chain reaches finality. The SDK builds a Gateway burn intent whose destination is Arc's GatewayMinter and whose recipient is the deposit address of the Inlet intent, and the user signs it. The relayer validates that the burn intent matches the Inlet intent, submits it to the Gateway API, stores the attestation, and calls gatewayMint on Arc. USDC lands at the deposit address in well under a second. The recipient receives the full value; Circle's fee comes out of the remaining unified balance, so on this route the intent amount equals the transfer value.
 
 This route is the one that makes the margin top up possible: with a Gateway delegate authorization, the relayer can create burn intents from the user's unified balance when a protocol asks for more margin.
 
@@ -135,7 +135,9 @@ Adding a protocol means writing one adapter and registering its id. No change to
 
 A TypeScript service. State per intent:
 
-created, funded, swept, attested, received, executed, claimable, refunded.
+created, funded, swept, attested, executed, claimable, refunding, refunded, expired.
+
+A refund has two halves: the hub burns back toward the source chain (refunding), then the relayer submits the mint on the source chain so the user actually receives the USDC (refunded).
 
 Loops:
 
@@ -143,6 +145,8 @@ Loops:
 - Poll Circle's attestation API for each swept burn until the attestation is available, then submit receiveMessage on the destination.
 - Execute the receiver and record the result.
 - For the direct CCTP route, poll the source burn and submit the Arc mint.
+- For the Gateway route, submit the signed burn intent to Circle and call gatewayMint on Arc.
+- For refunds, poll the refund burn and submit the mint on the source chain.
 
 Every step is idempotent and safe to retry. Storage is SQLite. The service exposes a small HTTP API: register an intent, read an intent's status. Keys for Arc, the EVM destinations, and Stellar are held in environment variables and never in the repository.
 

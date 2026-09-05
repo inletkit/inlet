@@ -17,10 +17,11 @@ pnpm dev
 | GET | `/health` | hub and relayer addresses |
 | POST | `/intents` | register an intent, returns its hash and deposit address |
 | POST | `/intents/:hash/source-tx` | report the CCTP burn on the source chain |
+| POST | `/intents/:hash/gateway` | submit the signed Gateway burn intent |
 | GET | `/intents/:hash` | current state and transaction hashes |
 
-States: created, funded, swept, attested, executed, claimable, refunded, expired.
+States: created, funded, swept, attested, executed, claimable, refunding, refunded, expired.
 
 ## End to end on testnet
 
-`pnpm e2e` burns one USDC on Base Sepolia, routes it through Arc, and deposits it into the demo vault on Arbitrum Sepolia, printing every transaction hash.
+`pnpm e2e` burns one USDC on Base Sepolia, routes it through Arc, and deposits it into the demo vault on Arbitrum Sepolia, printing every transaction hash. `pnpm gateway:deposit` funds a Gateway balance once, and `pnpm e2e:gateway` runs the same deposit from that balance without a source chain wait.
