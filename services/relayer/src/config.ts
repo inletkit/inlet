@@ -15,8 +15,9 @@ export interface RelayerConfig {
 }
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): RelayerConfig {
-  const privateKey = (env.RELAYER_PRIVATE_KEY ?? env.PRIVATE_KEY) as Hex | undefined;
-  if (!privateKey) throw new Error("RELAYER_PRIVATE_KEY is not set");
+  const raw = (env.RELAYER_PRIVATE_KEY ?? env.PRIVATE_KEY ?? "").trim();
+  if (!raw) throw new Error("RELAYER_PRIVATE_KEY is not set");
+  const privateKey = (raw.startsWith("0x") ? raw : `0x${raw}`) as Hex;
   return {
     privateKey,
     port: Number(env.PORT ?? 8787),

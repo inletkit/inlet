@@ -26,8 +26,10 @@ const base = createPublicClient({ chain: baseSepolia, transport: http(config.rpc
 const signer = createWalletClient({ account: user, chain: baseSepolia, transport: http(config.rpc[6]) });
 const arbitrum = createPublicClient({ chain: arbitrumSepolia, transport: http(config.rpc[3]) });
 
-const relayer = await createRelayer(config).start();
+const remote = process.env.RELAYER_URL;
+const relayer = remote ? { url: remote, stop: async () => {} } : await createRelayer(config).start();
 const client = new InletRelayerClient(relayer.url);
+console.log(`relayer ${relayer.url}${remote ? " (remote)" : ""}`);
 const started = Date.now();
 const stamp = () => `${Math.round((Date.now() - started) / 1000)}s`;
 

@@ -17,6 +17,7 @@ param arcRpc string = 'https://rpc.testnet.arc.io'
 param baseSepoliaRpc string = 'https://sepolia.base.org'
 param arbitrumSepoliaRpc string = 'https://sepolia-rollup.arbitrum.io/rpc'
 param corsOrigin string = '*'
+param relayerImage string = ''
 
 resource group 'Microsoft.Resources/resourceGroups@2024-03-01' = {
   name: resourceGroupName
@@ -35,6 +36,7 @@ module resources './resources.bicep' = {
     baseSepoliaRpc: baseSepoliaRpc
     arbitrumSepoliaRpc: arbitrumSepoliaRpc
     corsOrigin: corsOrigin
+    relayerImage: relayerImage
   }
 }
 

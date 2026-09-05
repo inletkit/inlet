@@ -6,6 +6,7 @@ param arcRpc string
 param baseSepoliaRpc string
 param arbitrumSepoliaRpc string
 param corsOrigin string
+param relayerImage string = ''
 
 var suffix = toLower(uniqueString(resourceGroup().id))
 var tags = { 'azd-env-name': environmentName }
@@ -109,7 +110,7 @@ resource relayer 'Microsoft.App/containerApps@2024-03-01' = {
       containers: [
         {
           name: 'relayer'
-          image: 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest'
+          image: !empty(relayerImage) ? relayerImage : 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest'
           resources: { cpu: json('0.5'), memory: '1Gi' }
           env: [
             { name: 'RELAYER_PRIVATE_KEY', secretRef: 'relayer-private-key' }
