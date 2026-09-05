@@ -1,5 +1,7 @@
 import {
+  GatewayClient,
   IrisClient,
+  gatewayMinterAbi,
   inletHubAbi,
   inletReceiverAbi,
   messageTransmitterV2Abi,
@@ -19,6 +21,7 @@ export class Pipeline {
     private readonly account: PrivateKeyAccount,
     private readonly store: IntentStore,
     private readonly iris: IrisClient,
+    private readonly gateway: GatewayClient,
   ) {}
 
   async tick() {
@@ -26,9 +29,11 @@ export class Pipeline {
     for (const record of this.store.listByState(["funded"])) await this.guarded(record, () => this.sweep(record));
     for (const record of this.store.listByState(["swept"])) await this.guarded(record, () => this.attest(record));
     for (const record of this.store.listByState(["attested"])) await this.guarded(record, () => this.execute(record));
+    for (const record of this.store.listByState(["refunding"])) await this.guarded(record, () => this.completeRefund(record));
   }
 
   private async guarded(record: StoredIntent, step: () => Promise<void>) {
+    if (record.error && Date.now() - record.updatedAt < 30_000) return;
     try {
       await step();
     } catch (error) {
@@ -73,6 +78,31 @@ export class Pipeline {
     if (record.route === "cctp" && record.sourceTx && !record.arcMintTx) {
       await this.mintOnArc(record);
     }
+    if (record.route === "gateway" && record.gatewayRequest && !record.arcMintTx) {
+      await this.mintFromGateway(record);
+    }
+  }
+
+  private async mintFromGateway(record: StoredIntent) {
+    let attestation = record.gatewayAttestation;
+    if (!attestation) {
+      attestation = await this.gateway.transfer([record.gatewayRequest!]);
+      this.store.update(record.hash, { gateway_attestation: JSON.stringify(attestation) });
+      log("pipeline", `${record.hash} gateway attestation received`, { transferId: attestation.transferId });
+    }
+    const hash = await this.arc.walletClient.writeContract({
+      address: this.arc.gatewayMinter,
+      abi: gatewayMinterAbi,
+      functionName: "gatewayMint",
+      args: [attestation.attestation, attestation.signature],
+      account: this.account,
+      chain: this.arc.chain,
+      gas: 600_000n,
+    });
+    const receipt = await this.arc.publicClient.waitForTransactionReceipt({ hash });
+    if (receipt.status !== "success") throw new Error(`gatewayMint reverted in ${hash}`);
+    log("pipeline", `${record.hash} minted on Arc from Gateway`, { tx: hash });
+    this.store.update(record.hash, { arc_mint_tx: hash });
   }
 
   private async mintOnArc(record: StoredIntent) {
@@ -227,6 +257,38 @@ export class Pipeline {
     });
     const receipt = await this.arc.publicClient.waitForTransactionReceipt({ hash });
     if (receipt.status !== "success") throw new Error(`refund reverted in ${hash}`);
-    this.transition(record, "refunded", { sweep_tx: hash });
+    this.transition(record, "refunding", { refund_tx: hash });
+  }
+
+  async completeRefund(record: StoredIntent) {
+    const messages = await this.iris.getMessages(this.config.hubDomain, record.refundTx!);
+    const ready = messages.find((message) => message.status === "complete" && message.attestation !== "PENDING");
+    if (!ready) return;
+
+    const source = this.chains[record.intent.sourceDomain];
+    if (!source) throw new Error(`no client for source domain ${record.intent.sourceDomain}`);
+    const nonce = slice(ready.message, 12, 44);
+    const used = await source.publicClient.readContract({
+      address: source.messageTransmitter,
+      abi: messageTransmitterV2Abi,
+      functionName: "usedNonces",
+      args: [nonce],
+    });
+    if (used === 1n) {
+      this.transition(record, "refunded", { refund_mint_tx: "external" });
+      return;
+    }
+    const hash = await source.walletClient.writeContract({
+      address: source.messageTransmitter,
+      abi: messageTransmitterV2Abi,
+      functionName: "receiveMessage",
+      args: [ready.message, ready.attestation as Hex],
+      account: this.account,
+      chain: source.chain,
+      gas: source.fixedGas,
+    });
+    const receipt = await source.publicClient.waitForTransactionReceipt({ hash });
+    if (receipt.status !== "success") throw new Error(`refund mint reverted in ${hash}`);
+    this.transition(record, "refunded", { refund_mint_tx: hash });
   }
 }

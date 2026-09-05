@@ -12,6 +12,8 @@ export interface ChainContext {
   usdc: Address;
   tokenMessenger: Address;
   messageTransmitter: Address;
+  gatewayWallet: Address;
+  gatewayMinter: Address;
   fixedGas?: bigint;
 }
 
@@ -26,7 +28,7 @@ export function buildChains(config: RelayerConfig): { account: PrivateKeyAccount
   const byDomain: Record<number, ChainContext> = {};
   for (const [domainText, entry] of Object.entries(chainByDomain)) {
     const domain = Number(domainText);
-    const addresses = testnetChains[entry.key] as { usdc: Address; tokenMessengerV2: Address; messageTransmitterV2: Address };
+    const addresses = testnetChains[entry.key] as { usdc: Address; tokenMessengerV2: Address; messageTransmitterV2: Address; gatewayWallet: Address; gatewayMinter: Address };
     const transport = http(config.rpc[domain]);
     byDomain[domain] = {
       domain,
@@ -36,6 +38,8 @@ export function buildChains(config: RelayerConfig): { account: PrivateKeyAccount
       usdc: addresses.usdc,
       tokenMessenger: addresses.tokenMessengerV2,
       messageTransmitter: addresses.messageTransmitterV2,
+      gatewayWallet: addresses.gatewayWallet,
+      gatewayMinter: addresses.gatewayMinter,
       fixedGas: domain === 26 ? 1_500_000n : undefined,
     };
   }

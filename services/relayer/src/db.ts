@@ -1,7 +1,7 @@
 import { DatabaseSync } from "node:sqlite";
 import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
-import { parseIntent, serializeIntent, type DepositIntent, type IntentRecord, type IntentState, type Route } from "@inletkit/sdk";
+import { parseBurnIntent, parseIntent, serializeBurnIntent, serializeIntent, type DepositIntent, type GatewayAttestation, type IntentRecord, type IntentState, type Route, type SignedBurnIntent } from "@inletkit/sdk";
 import type { Address, Hex } from "viem";
 
 interface Row {
@@ -17,6 +17,10 @@ interface Row {
   message: string | null;
   attestation: string | null;
   destination_tx: string | null;
+  gateway_json: string | null;
+  gateway_attestation: string | null;
+  refund_tx: string | null;
+  refund_mint_tx: string | null;
   result: string | null;
   error: string | null;
   created_at: number;
@@ -27,6 +31,8 @@ export interface StoredIntent extends IntentRecord {
   createdBlock: number;
   message?: Hex;
   attestation?: Hex;
+  gatewayRequest?: SignedBurnIntent;
+  gatewayAttestation?: GatewayAttestation;
 }
 
 export class IntentStore {
@@ -55,6 +61,17 @@ export class IntentStore {
         updated_at integer not null
       )
     `);
+    for (const column of ["gateway_json text", "gateway_attestation text", "refund_tx text", "refund_mint_tx text"]) {
+      try {
+        this.db.exec(`alter table intents add column ${column}`);
+      } catch {
+        continue;
+      }
+    }
+  }
+
+  setGatewayRequest(hash: Hex, signed: SignedBurnIntent) {
+    return this.update(hash, { gateway_json: JSON.stringify({ burnIntent: serializeBurnIntent(signed.burnIntent), signature: signed.signature }) });
   }
 
   insert(hash: Hex, intent: DepositIntent, route: Route, depositAddress: Address, createdBlock: number): StoredIntent {
@@ -79,7 +96,7 @@ export class IntentStore {
     return rows.map(toRecord);
   }
 
-  update(hash: Hex, patch: Partial<Record<"state" | "source_tx" | "arc_mint_tx" | "sweep_tx" | "message" | "attestation" | "destination_tx" | "result" | "error", string | null>>): StoredIntent {
+  update(hash: Hex, patch: Partial<Record<"state" | "source_tx" | "arc_mint_tx" | "sweep_tx" | "message" | "attestation" | "destination_tx" | "gateway_json" | "gateway_attestation" | "refund_tx" | "refund_mint_tx" | "result" | "error", string | null>>): StoredIntent {
     const keys = Object.keys(patch);
     if (keys.length === 0) return this.get(hash)!;
     const sets = keys.map((key) => `${key} = ?`).join(", ");
@@ -106,9 +123,17 @@ function toRecord(row: Row): StoredIntent {
     message: (row.message ?? undefined) as Hex | undefined,
     attestation: (row.attestation ?? undefined) as Hex | undefined,
     destinationTx: (row.destination_tx ?? undefined) as Hex | undefined,
+    refundTx: (row.refund_tx ?? undefined) as Hex | undefined,
+    refundMintTx: (row.refund_mint_tx ?? undefined) as Hex | undefined,
+    gatewayRequest: row.gateway_json ? parseGatewayRequest(JSON.parse(row.gateway_json)) : undefined,
+    gatewayAttestation: row.gateway_attestation ? (JSON.parse(row.gateway_attestation) as GatewayAttestation) : undefined,
     result: row.result ?? undefined,
     error: row.error ?? undefined,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
+}
+
+function parseGatewayRequest(raw: { burnIntent: Record<string, unknown>; signature: Hex }): SignedBurnIntent {
+  return { burnIntent: parseBurnIntent(raw.burnIntent), signature: raw.signature };
 }

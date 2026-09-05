@@ -7,6 +7,7 @@ export interface RelayerConfig {
   dbPath: string;
   pollIntervalMs: number;
   irisApi: string;
+  gatewayApi: string;
   rpc: Record<number, string>;
   hub: Address;
   hubDomain: number;
@@ -22,6 +23,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): RelayerConfig 
     dbPath: env.DB_PATH ?? "data/inlet.db",
     pollIntervalMs: Number(env.POLL_INTERVAL_MS ?? 3000),
     irisApi: env.IRIS_API ?? testnetChains.circle.irisApi,
+    gatewayApi: env.GATEWAY_API ?? testnetChains.circle.gatewayApi,
     rpc: {
       26: env.ARC_RPC ?? testnetChains.arcTestnet.rpc,
       6: env.BASE_SEPOLIA_RPC ?? testnetChains.baseSepolia.rpc,

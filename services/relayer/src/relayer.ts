@@ -1,4 +1,4 @@
-import { IrisClient } from "@inletkit/sdk";
+import { GatewayClient, IrisClient } from "@inletkit/sdk";
 import { buildApp } from "./api.js";
 import { buildChains } from "./chains.js";
 import type { RelayerConfig } from "./config.js";
@@ -9,7 +9,7 @@ import { Pipeline } from "./pipeline.js";
 export function createRelayer(config: RelayerConfig) {
   const { account, byDomain } = buildChains(config);
   const store = new IntentStore(config.dbPath);
-  const pipeline = new Pipeline(config, byDomain, account, store, new IrisClient(config.irisApi));
+  const pipeline = new Pipeline(config, byDomain, account, store, new IrisClient(config.irisApi), new GatewayClient(config.gatewayApi));
   let running = false;
   let loop: Promise<void> | undefined;
 
