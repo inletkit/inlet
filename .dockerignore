@@ -1,0 +1,12 @@
+.git
+node_modules
+**/node_modules
+**/dist
+**/out
+**/.next
+**/data
+contracts/lib
+contracts/out
+contracts/cache
+contracts/broadcast
+.azure

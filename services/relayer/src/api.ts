@@ -8,7 +8,8 @@ import type { IntentStore, StoredIntent } from "./db.js";
 
 export async function buildApp(config: RelayerConfig, chains: Record<number, ChainContext>, store: IntentStore) {
   const app = Fastify({ logger: false });
-  await app.register(cors, { origin: true });
+  const origins = (process.env.CORS_ORIGIN ?? "*").split(",").map((entry) => entry.trim());
+  await app.register(cors, { origin: origins.includes("*") ? true : origins });
   const arc = chains[config.hubDomain];
 
   app.get("/health", async () => ({ ok: true, hub: config.hub, relayer: arc.walletClient.account?.address }));

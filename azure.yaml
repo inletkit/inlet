@@ -1,0 +1,11 @@
+name: inlet
+metadata:
+  template: inlet
+services:
+  relayer:
+    project: ./services/relayer
+    host: containerapp
+    language: ts
+    docker:
+      path: Dockerfile
+      context: ../..

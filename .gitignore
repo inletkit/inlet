@@ -32,3 +32,6 @@ data/
 # system
 .DS_Store
 .deployer-address
+
+# azure developer cli state
+.azure/
