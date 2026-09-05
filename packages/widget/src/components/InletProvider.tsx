@@ -35,10 +35,15 @@ export function InletProvider({ privyAppId, relayerUrl, rpc = {}, children }: In
       appId={privyAppId}
       config={{
         loginMethods: ["email", "wallet"],
-        embeddedWallets: { ethereum: { createOnLogin: "users-without-wallets" } },
+        embeddedWallets: { ethereum: { createOnLogin: "users-without-wallets" }, solana: { createOnLogin: "off" } },
         defaultChain: baseSepolia,
         supportedChains: [...chains],
-        appearance: { theme: "light", accentColor: "#0f6fff" },
+        appearance: {
+          theme: "light",
+          accentColor: "#0f6fff",
+          walletChainType: "ethereum-only",
+          walletList: ["metamask", "detected_ethereum_wallets", "wallet_connect_qr"],
+        },
       }}
     >
       <QueryClientProvider client={queryClient}>

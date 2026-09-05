@@ -27,7 +27,10 @@
   }
 }
 .inlet-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
-.inlet-title { margin: 0; font-size: 16px; font-weight: 600; }
+.inlet-title { margin: 0; font-size: 16px; font-weight: 600; display: grid; gap: 2px; }
+.inlet-relayer { font-size: 11px; font-weight: 500; color: var(--inlet-muted); }
+.inlet-relayer-online::before { content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--inlet-done); margin-right: 6px; }
+.inlet-relayer-offline { color: var(--inlet-warn); }
 .inlet-body { display: grid; gap: 12px; }
 .inlet-field { display: grid; gap: 4px; }
 .inlet-field span { color: var(--inlet-muted); font-size: 12px; }

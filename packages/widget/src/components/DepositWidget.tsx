@@ -1,3 +1,4 @@
+import { InletRelayerClient } from "@inletkit/sdk";
 import { useEffect, useRef, useState } from "react";
 import { useAccount, useConnect, useDisconnect } from "wagmi";
 import { defaultSources } from "../config.js";
@@ -26,6 +27,23 @@ export function DepositWidget({ destinations, relayerUrl, sources = defaultSourc
   const [sourceDomain, setSourceDomain] = useState(sources[0]?.domain);
   const [amount, setAmount] = useState(defaultAmount);
   const [preference, setPreference] = useState<RoutePreference>("auto");
+
+  const [relayerStatus, setRelayerStatus] = useState<"checking" | "online" | "offline">("checking");
+  useEffect(() => {
+    let stopped = false;
+    const client = new InletRelayerClient(url, 8000);
+    const check = () =>
+      client
+        .health()
+        .then((health) => !stopped && setRelayerStatus(health.ok ? "online" : "offline"))
+        .catch(() => !stopped && setRelayerStatus("offline"));
+    void check();
+    const handle = setInterval(check, 15_000);
+    return () => {
+      stopped = true;
+      clearInterval(handle);
+    };
+  }, [url]);
 
   const destination = destinations.find((entry) => entry.id === destinationId) ?? destinations[0];
   const source = sources.find((entry) => entry.domain === sourceDomain) ?? sources[0];
@@ -56,7 +74,12 @@ export function DepositWidget({ destinations, relayerUrl, sources = defaultSourc
   return (
     <section className="inlet">
       <header className="inlet-header">
-        <h2 className="inlet-title">{title}</h2>
+        <h2 className="inlet-title">
+          {title}
+          <span className={`inlet-relayer inlet-relayer-${relayerStatus}`} title={url}>
+            {relayerStatus === "online" ? "relayer online" : relayerStatus === "offline" ? `relayer unreachable at ${url}` : "checking relayer"}
+          </span>
+        </h2>
         {isConnected && address ? (
           <button className="inlet-link" type="button" onClick={() => (inlet.logout ? inlet.logout() : disconnect())}>
             {short(address)}
@@ -162,7 +185,7 @@ export function DepositWidget({ destinations, relayerUrl, sources = defaultSourc
           <button
             className="inlet-primary"
             type="button"
-            disabled={!state.quote || busy || quoting}
+            disabled={!state.quote || busy || quoting || relayerStatus !== "online"}
             onClick={() => state.quote && void deposit(state.quote)}
           >
             {state.phase === "creating" ? "Registering intent" : state.phase === "signing" ? "Waiting for your wallet" : state.phase === "sending" ? "Sending" : quoting ? "Quoting" : "Deposit"}
