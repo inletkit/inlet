@@ -1,0 +1,21 @@
+{
+  "name": "@inletkit/relayer",
+  "version": "0.1.0",
+  "description": "Watches deposits, sweeps the hub, relays Circle attestations, and executes adapters.",
+  "license": "MIT",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "dev": "tsx --env-file=.env src/index.ts",
+    "start": "node --env-file=.env dist/index.js",
+    "e2e": "tsx --env-file=.env scripts/e2e.ts"
+  },
+  "dependencies": {
+    "@fastify/cors": "^11.3.0",
+    "@inletkit/sdk": "workspace:*",
+    "fastify": "^5.12.3",
+    "viem": "^2.56.3"
+  }
+}
