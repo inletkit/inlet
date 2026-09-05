@@ -11,3 +11,5 @@ azd up
 ```
 
 The playground is exported with `pnpm --filter @inletkit/playground build` and uploaded to the Static Web App with the SWA CLI using the site's deployment token.
+
+The playground is deployed by the `playground` workflow on every push to main, using the Static Web App deployment token stored as a repository secret. Live: https://red-cliff-00b9f0703.6.azurestaticapps.net and https://inlet-relayer.wonderfulforest-6c3e22a4.westeurope.azurecontainerapps.io.

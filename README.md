@@ -20,6 +20,12 @@ Under the button, Circle Gateway or CCTP brings native USDC to Arc, the Inlet hu
 
 See `docs/spec.md` for the architecture.
 
+## Live on testnet
+
+- Playground and docs: https://red-cliff-00b9f0703.6.azurestaticapps.net
+- Relayer API: https://inlet-relayer.wonderfulforest-6c3e22a4.westeurope.azurecontainerapps.io
+- Hub on Arc testnet: 0x84f3433550d1B6FB7f0BE197eA9faA256962408B
+
 ## Status
 
 Built during ETHGlobal ETHOnline 2026 on Arc testnet. Zero fees. Not audited. Testnet only.
