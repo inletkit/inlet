@@ -1,0 +1,62 @@
+.inlet {
+  --inlet-bg: #ffffff;
+  --inlet-fg: #101828;
+  --inlet-muted: #667085;
+  --inlet-line: #e4e7ec;
+  --inlet-accent: #0f6fff;
+  --inlet-accent-fg: #ffffff;
+  --inlet-warn: #b54708;
+  --inlet-warn-bg: #fff6ed;
+  --inlet-done: #027a48;
+  color: var(--inlet-fg);
+  background: var(--inlet-bg);
+  border: 1px solid var(--inlet-line);
+  border-radius: 16px;
+  padding: 20px;
+  max-width: 440px;
+  font: 14px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+}
+@media (prefers-color-scheme: dark) {
+  .inlet {
+    --inlet-bg: #0b1220;
+    --inlet-fg: #f2f4f7;
+    --inlet-muted: #98a2b3;
+    --inlet-line: #1f2a3d;
+    --inlet-warn-bg: #2a1a0a;
+  }
+}
+.inlet-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.inlet-title { margin: 0; font-size: 16px; font-weight: 600; }
+.inlet-body { display: grid; gap: 12px; }
+.inlet-field { display: grid; gap: 4px; }
+.inlet-field span { color: var(--inlet-muted); font-size: 12px; }
+.inlet-field select, .inlet-field input {
+  font: inherit; color: inherit; background: transparent;
+  border: 1px solid var(--inlet-line); border-radius: 10px; padding: 10px 12px;
+}
+.inlet-routes { display: flex; gap: 8px; }
+.inlet-chip { font: inherit; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--inlet-line); background: transparent; color: var(--inlet-fg); cursor: pointer; }
+.inlet-chip-on { border-color: var(--inlet-accent); color: var(--inlet-accent); }
+.inlet-quote { margin: 0; display: grid; gap: 6px; padding: 12px; border-radius: 12px; border: 1px dashed var(--inlet-line); }
+.inlet-quote div { display: flex; justify-content: space-between; gap: 12px; }
+.inlet-quote dt { color: var(--inlet-muted); }
+.inlet-quote dd { margin: 0; text-align: right; }
+.inlet-primary, .inlet-secondary {
+  font: inherit; font-weight: 600; padding: 12px 16px; border-radius: 12px; cursor: pointer; border: 1px solid transparent;
+}
+.inlet-primary { background: var(--inlet-accent); color: var(--inlet-accent-fg); }
+.inlet-primary:disabled { opacity: 0.5; cursor: default; }
+.inlet-secondary { background: transparent; color: var(--inlet-fg); border-color: var(--inlet-line); }
+.inlet-link { font: inherit; background: none; border: none; color: var(--inlet-muted); cursor: pointer; }
+.inlet-warn { margin: 0; padding: 10px 12px; border-radius: 10px; background: var(--inlet-warn-bg); color: var(--inlet-warn); }
+.inlet-timeline { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.inlet-step { display: grid; grid-template-columns: 14px 1fr auto; gap: 10px; align-items: center; color: var(--inlet-muted); }
+.inlet-step-mark { width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--inlet-line); }
+.inlet-step-done { color: var(--inlet-fg); }
+.inlet-step-done .inlet-step-mark { background: var(--inlet-done); border-color: var(--inlet-done); }
+.inlet-step-active .inlet-step-mark { border-color: var(--inlet-accent); animation: inlet-pulse 1.2s ease-in-out infinite; }
+.inlet-step-link { color: var(--inlet-accent); text-decoration: none; font-variant-numeric: tabular-nums; }
+.inlet-step-warn { grid-template-columns: 1fr; color: var(--inlet-warn); }
+.inlet-step-note { grid-template-columns: auto auto; justify-content: start; }
+@keyframes inlet-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.4); } }
