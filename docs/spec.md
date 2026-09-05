@@ -36,7 +36,7 @@ DepositIntent {
   bytes32 receiver         // the Inlet receiver on the destination chain
   bytes32 beneficiary      // destination account, left padded EVM address or 32 byte key
   bytes   adapterData      // adapter specific parameters
-  uint256 amount           // USDC with 6 decimals
+  uint256 amount           // minimum USDC that must arrive at the deposit address, 6 decimals
   uint256 nonce
   uint64  deadline         // unix seconds; after this the intent is refundable
   bytes32 refundRecipient  // account on the source chain
@@ -44,7 +44,9 @@ DepositIntent {
 }
 ```
 
-EIP 712 domain: name "Inlet", version "1", chainId of Arc, verifyingContract the hub. The intent hash is the EIP 712 digest. It identifies the deposit everywhere: on the hub, in the hook data, in the receiver, and in the relayer.
+EIP 712 domain: name "Inlet", version "1", chainId of Arc, verifyingContract the hub.
+
+The amount is a floor, not the exact transfer size. Fast CCTP transfers deduct a fee at mint, so the SDK sets the intent amount to the burned amount minus the maximum fee, and the hub routes whatever balance actually arrives as long as it covers the floor. The intent hash is the EIP 712 digest. It identifies the deposit everywhere: on the hub, in the hook data, in the receiver, and in the relayer.
 
 ## 5. The hub on Arc
 

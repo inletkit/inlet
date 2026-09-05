@@ -61,7 +61,7 @@ export class IrisClient {
   async fastTransferMaxFee(sourceDomain: number, destinationDomain: number, amount: bigint): Promise<bigint> {
     const fees = await this.getBurnFees(sourceDomain, destinationDomain);
     const fast = fees.find((fee) => fee.finalityThreshold <= 1000) ?? fees[0];
-    const bps = fast ? BigInt(fast.minimumFee) : 0n;
-    return (amount * bps) / 10_000n + 1n;
+    const milliBps = fast ? BigInt(Math.round(fast.minimumFee * 1000)) : 0n;
+    return (amount * milliBps) / 10_000_000n + 1n;
   }
 }
