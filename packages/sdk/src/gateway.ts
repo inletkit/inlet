@@ -3,6 +3,8 @@ import { toBytes32 } from "./intent.js";
 
 export const gatewayDomain = { name: "GatewayWallet", version: "1" } as const;
 
+export const GATEWAY_EXPIRY_BLOCKS = 600_000n;
+
 export const gatewayTypes = {
   TransferSpec: [
     { name: "version", type: "uint32" },

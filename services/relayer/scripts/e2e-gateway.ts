@@ -1,4 +1,5 @@
 import {
+  GATEWAY_EXPIRY_BLOCKS,
   InletRelayerClient,
   adapterId,
   burnIntentTypedData,
@@ -61,7 +62,7 @@ try {
     depositor: user.address,
     recipient: record.depositAddress,
     value: amount,
-    maxBlockHeight: block + 5_000n,
+    maxBlockHeight: block + GATEWAY_EXPIRY_BLOCKS,
   });
   const signature = await signer.signTypedData(burnIntentTypedData(burnIntent));
   await client.submitGateway(record.hash, { burnIntent, signature });
