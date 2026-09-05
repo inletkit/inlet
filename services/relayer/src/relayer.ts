@@ -1,0 +1,48 @@
+import { IrisClient } from "@inletkit/sdk";
+import { buildApp } from "./api.js";
+import { buildChains } from "./chains.js";
+import type { RelayerConfig } from "./config.js";
+import { IntentStore } from "./db.js";
+import { log } from "./log.js";
+import { Pipeline } from "./pipeline.js";
+
+export function createRelayer(config: RelayerConfig) {
+  const { account, byDomain } = buildChains(config);
+  const store = new IntentStore(config.dbPath);
+  const pipeline = new Pipeline(config, byDomain, account, store, new IrisClient(config.irisApi));
+  let running = false;
+  let loop: Promise<void> | undefined;
+
+  async function runLoop() {
+    while (running) {
+      try {
+        await pipeline.tick();
+      } catch (error) {
+        log("loop", error instanceof Error ? error.message : String(error));
+      }
+      await new Promise((resolve) => setTimeout(resolve, config.pollIntervalMs));
+    }
+  }
+
+  return {
+    account,
+    store,
+    pipeline,
+    async start() {
+      const app = await buildApp(config, byDomain, store);
+      const url = await app.listen({ port: config.port, host: "0.0.0.0" });
+      running = true;
+      loop = runLoop();
+      log("relayer", `listening on ${url} as ${account.address}`);
+      return {
+        url,
+        async stop() {
+          running = false;
+          await loop;
+          await app.close();
+          store.close();
+        },
+      };
+    },
+  };
+}
