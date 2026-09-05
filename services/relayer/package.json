@@ -10,7 +10,10 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "dev": "tsx --env-file=.env src/index.ts",
     "start": "node --env-file=.env dist/index.js",
-    "e2e": "tsx --env-file=.env scripts/e2e.ts"
+    "e2e": "tsx --env-file=.env scripts/e2e.ts",
+    "e2e:gateway": "tsx --env-file=.env scripts/e2e-gateway.ts",
+    "refund:stuck": "tsx --env-file=.env scripts/refund-stuck.ts",
+    "gateway:deposit": "tsx --env-file=.env scripts/gateway-deposit.ts"
   },
   "dependencies": {
     "@fastify/cors": "^11.3.0",

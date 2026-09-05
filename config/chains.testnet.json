@@ -7,7 +7,9 @@
     "usdc": "0x3600000000000000000000000000000000000000",
     "tokenMessengerV2": "0x8FE6B999Dc680CcFDD5Bf7EB0974218be2542DAA",
     "messageTransmitterV2": "0xE737e5cEBEEBa77EFE34D4aa090756590b1CE275",
-    "gatewayDomain": 26
+    "gatewayDomain": 26,
+    "gatewayWallet": "0x0077777d7EBA4688BDeF3E311b846F25870A19B9",
+    "gatewayMinter": "0x0022222ABE238Cc2C7Bb1f21003F0a260052475B"
   },
   "baseSepolia": {
     "chainId": 84532,
@@ -17,7 +19,9 @@
     "usdc": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
     "tokenMessengerV2": "0x8FE6B999Dc680CcFDD5Bf7EB0974218be2542DAA",
     "messageTransmitterV2": "0xE737e5cEBEEBa77EFE34D4aa090756590b1CE275",
-    "gatewayDomain": 6
+    "gatewayDomain": 6,
+    "gatewayWallet": "0x0077777d7EBA4688BDeF3E311b846F25870A19B9",
+    "gatewayMinter": "0x0022222ABE238Cc2C7Bb1f21003F0a260052475B"
   },
   "arbitrumSepolia": {
     "chainId": 421614,
@@ -27,7 +31,9 @@
     "usdc": "0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d",
     "tokenMessengerV2": "0x8FE6B999Dc680CcFDD5Bf7EB0974218be2542DAA",
     "messageTransmitterV2": "0xE737e5cEBEEBa77EFE34D4aa090756590b1CE275",
-    "gatewayDomain": 3
+    "gatewayDomain": 3,
+    "gatewayWallet": "0x0077777d7EBA4688BDeF3E311b846F25870A19B9",
+    "gatewayMinter": "0x0022222ABE238Cc2C7Bb1f21003F0a260052475B"
   },
   "stellarTestnet": {
     "cctpDomain": 27,
