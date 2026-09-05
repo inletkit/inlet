@@ -130,7 +130,7 @@ resource relayer 'Microsoft.App/containerApps@2024-03-01' = {
         }
       ]
       scale: { minReplicas: 1, maxReplicas: 1 }
-      volumes: [{ name: 'data', storageType: 'AzureFile', storageName: environmentStorage.name }]
+      volumes: [{ name: 'data', storageType: 'AzureFile', storageName: environmentStorage.name, mountOptions: 'nobrl,cache=none' }]
     }
   }
 }
