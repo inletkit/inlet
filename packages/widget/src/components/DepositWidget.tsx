@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAccount, useConnect, useDisconnect } from "wagmi";
 import { defaultSources } from "../config.js";
 import { useInlet } from "../context.js";
@@ -37,13 +37,20 @@ export function DepositWidget({ destinations, relayerUrl, sources = defaultSourc
     if (connected) setSourceDomain(connected.domain);
   }, [chainId, sources]);
 
+  const phase = useRef(state.phase);
+  phase.current = state.phase;
+
   useEffect(() => {
-    if (!isConnected || state.phase === "creating" || state.phase === "signing" || state.phase === "sending" || state.phase === "tracking" || state.phase === "done") return;
-    const handle = setTimeout(() => void quote(amount, preference), 400);
+    if (!isConnected || !address) return;
+    const handle = setTimeout(() => {
+      if (["creating", "signing", "sending", "tracking", "done"].includes(phase.current)) return;
+      void quote(amount, preference);
+    }, 400);
     return () => clearTimeout(handle);
-  }, [amount, preference, isConnected, source, destination, quote, state.phase]);
+  }, [amount, preference, isConnected, address, source, destination, quote]);
 
   const busy = ["creating", "signing", "sending"].includes(state.phase);
+  const quoting = state.phase === "quoting";
   const tracking = state.phase === "tracking" || state.phase === "done";
 
   return (
@@ -79,7 +86,7 @@ export function DepositWidget({ destinations, relayerUrl, sources = defaultSourc
         <div className="inlet-body">
           <label className="inlet-field">
             <span>Into</span>
-            <select value={destination?.id} onChange={(event) => setDestinationId(event.target.value)} disabled={busy}>
+            <select id="inlet-destination" name="destination" value={destination?.id} onChange={(event) => setDestinationId(event.target.value)} disabled={busy}>
               {destinations.map((entry) => (
                 <option key={entry.id} value={entry.id}>
                   {entry.name}
@@ -89,7 +96,7 @@ export function DepositWidget({ destinations, relayerUrl, sources = defaultSourc
           </label>
           <label className="inlet-field">
             <span>From</span>
-            <select value={source?.domain} onChange={(event) => setSourceDomain(Number(event.target.value))} disabled={busy}>
+            <select id="inlet-source" name="source" value={source?.domain} onChange={(event) => setSourceDomain(Number(event.target.value))} disabled={busy}>
               {sources.map((entry) => (
                 <option key={entry.domain} value={entry.domain}>
                   {entry.name}
@@ -99,7 +106,7 @@ export function DepositWidget({ destinations, relayerUrl, sources = defaultSourc
           </label>
           <label className="inlet-field">
             <span>Amount</span>
-            <input inputMode="decimal" value={amount} onChange={(event) => setAmount(event.target.value)} disabled={busy} />
+            <input id="inlet-amount" name="amount" inputMode="decimal" value={amount} onChange={(event) => setAmount(event.target.value)} disabled={busy} />
           </label>
           <div className="inlet-routes">
             {(["auto", "gateway", "cctp"] as RoutePreference[]).map((option) => (
@@ -110,7 +117,7 @@ export function DepositWidget({ destinations, relayerUrl, sources = defaultSourc
           </div>
 
           {state.quote ? (
-            <dl className="inlet-quote">
+            <dl className={`inlet-quote ${quoting ? "inlet-quote-stale" : ""}`}>
               <div>
                 <dt>Route</dt>
                 <dd>{state.quote.route === "gateway" ? "Gateway, one signature, no gas" : "CCTP fast transfer, approve and burn"}</dd>
@@ -155,10 +162,10 @@ export function DepositWidget({ destinations, relayerUrl, sources = defaultSourc
           <button
             className="inlet-primary"
             type="button"
-            disabled={!state.quote || busy || state.phase === "quoting"}
+            disabled={!state.quote || busy || quoting}
             onClick={() => state.quote && void deposit(state.quote)}
           >
-            {state.phase === "creating" ? "Registering intent" : state.phase === "signing" ? "Waiting for your wallet" : state.phase === "sending" ? "Sending" : state.phase === "quoting" ? "Quoting" : "Deposit"}
+            {state.phase === "creating" ? "Registering intent" : state.phase === "signing" ? "Waiting for your wallet" : state.phase === "sending" ? "Sending" : quoting ? "Quoting" : "Deposit"}
           </button>
           <button
             className="inlet-secondary"

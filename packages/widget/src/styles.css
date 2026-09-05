@@ -40,6 +40,7 @@
 .inlet-chip-on { border-color: var(--inlet-accent); color: var(--inlet-accent); }
 .inlet-quote { margin: 0; display: grid; gap: 6px; padding: 12px; border-radius: 12px; border: 1px dashed var(--inlet-line); }
 .inlet-quote div { display: flex; justify-content: space-between; gap: 12px; }
+.inlet-quote-stale { opacity: 0.6; }
 .inlet-quote dt { color: var(--inlet-muted); }
 .inlet-quote dd { margin: 0; text-align: right; }
 .inlet-primary, .inlet-secondary {

@@ -40,7 +40,7 @@ export function useDeposit(params: { relayerUrl: string; source: SourceChain; de
       if (!address || !publicClient) return undefined;
       const sendAmount = parseUnits(amountInput || "0", 6);
       if (sendAmount <= 0n) return undefined;
-      setState({ phase: "quoting" });
+      setState((previous) => ({ ...previous, phase: "quoting", error: undefined }));
       try {
         const [walletUsdc, balances, ethBalance] = await Promise.all([
           publicClient.readContract({ address: source.usdc, abi: erc20Abi, functionName: "balanceOf", args: [address] }),
@@ -58,10 +58,10 @@ export function useDeposit(params: { relayerUrl: string; source: SourceChain; de
           const maxFee = await iris.fastTransferMaxFee(source.domain, hubDomain, sendAmount);
           next = { route, sendAmount, intentAmount: sendAmount - maxFee, circleFee: maxFee, walletUsdc, gatewayAvailable, needsGas: ethBalance === 0n };
         }
-        setState({ phase: "ready", quote: next });
+        setState((previous) => ({ ...previous, phase: "ready", quote: next }));
         return next;
       } catch (error) {
-        setState({ phase: "error", error: message(error) });
+        setState((previous) => ({ ...previous, phase: "error", error: message(error) }));
         return undefined;
       }
     },
