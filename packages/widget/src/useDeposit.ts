@@ -6,6 +6,7 @@ import {
   burnIntentTypedData,
   createBurnIntent,
   gatewayMaxFee,
+  gatewayWalletAbi,
   toBytes32,
   tokenMessengerV2Abi,
   type DepositIntent,
@@ -160,12 +161,43 @@ export function useDeposit(params: { relayerUrl: string; source: SourceChain; de
     [address, walletClient, publicClient, chainId, source, destination, relayer, switchChainAsync, track],
   );
 
+  const fundGateway = useCallback(
+    async (amountInput: string): Promise<Hex | undefined> => {
+      if (!address || !walletClient || !publicClient) return undefined;
+      const amount = parseUnits(amountInput || "0", 6);
+      if (amount <= 0n) return undefined;
+      try {
+        if (chainId !== source.chainId) await switchChainAsync({ chainId: source.chainId });
+        setState((previous) => ({ ...previous, phase: "signing", error: undefined }));
+        const allowance = await publicClient.readContract({ address: source.usdc, abi: erc20Abi, functionName: "allowance", args: [address, source.gatewayWallet] });
+        if (allowance < amount) {
+          const approve = await walletClient.writeContract({ account: address, chain: walletClient.chain, address: source.usdc, abi: erc20Abi, functionName: "approve", args: [source.gatewayWallet, amount] });
+          await publicClient.waitForTransactionReceipt({ hash: approve });
+          for (let attempt = 0; attempt < 30; attempt++) {
+            const visible = await publicClient.readContract({ address: source.usdc, abi: erc20Abi, functionName: "allowance", args: [address, source.gatewayWallet] });
+            if (visible >= amount) break;
+            await new Promise((resolve) => setTimeout(resolve, 2000));
+          }
+        }
+        setState((previous) => ({ ...previous, phase: "sending" }));
+        const deposit = await walletClient.writeContract({ account: address, chain: walletClient.chain, address: source.gatewayWallet, abi: gatewayWalletAbi, functionName: "deposit", args: [source.usdc, amount], gas: 250_000n });
+        await publicClient.waitForTransactionReceipt({ hash: deposit });
+        setState((previous) => ({ ...previous, phase: "ready", sourceTx: deposit }));
+        return deposit;
+      } catch (error) {
+        setState((previous) => ({ ...previous, phase: "error", error: message(error) }));
+        return undefined;
+      }
+    },
+    [address, walletClient, publicClient, chainId, source, switchChainAsync],
+  );
+
   const reset = useCallback(() => {
     clearInterval(poller.current);
     setState({ phase: "idle" });
   }, []);
 
-  return { state, quote, deposit, reset, address, chainId, connectedToSource: chainId === source.chainId };
+  return { state, quote, deposit, fundGateway, reset, address, chainId, connectedToSource: chainId === source.chainId };
 }
 
 function message(error: unknown): string {

@@ -29,7 +29,8 @@ export function DepositWidget({ destinations, relayerUrl, sources = defaultSourc
 
   const destination = destinations.find((entry) => entry.id === destinationId) ?? destinations[0];
   const source = sources.find((entry) => entry.domain === sourceDomain) ?? sources[0];
-  const { state, quote, deposit, reset } = useDeposit({ relayerUrl: url, source, destination });
+  const { state, quote, deposit, fundGateway, reset } = useDeposit({ relayerUrl: url, source, destination });
+  const [gatewayTx, setGatewayTx] = useState<string>();
 
   useEffect(() => {
     const connected = sources.find((entry) => entry.chainId === chainId);
@@ -140,6 +141,15 @@ export function DepositWidget({ destinations, relayerUrl, sources = defaultSourc
           {state.quote?.route === "cctp" && state.quote.needsGas ? <p className="inlet-warn">This route needs a little ETH on {source.name} for two transactions. Use Gateway to skip gas entirely.</p> : null}
           {state.quote?.route === "cctp" && state.quote.walletUsdc < state.quote.sendAmount ? <p className="inlet-warn">Not enough USDC in the wallet on {source.name}.</p> : null}
           {state.quote?.route === "gateway" && state.quote.gatewayAvailable < state.quote.sendAmount + state.quote.circleFee ? <p className="inlet-warn">Gateway balance does not cover the amount plus fee.</p> : null}
+          {gatewayTx ? (
+            <p className="inlet-warn">
+              Deposited into your Gateway balance in{" "}
+              <a className="inlet-step-link" href={source.explorer + gatewayTx} target="_blank" rel="noreferrer">
+                {short(gatewayTx)}
+              </a>
+              . Circle credits it once {source.name} reaches finality, usually fifteen to twenty minutes.
+            </p>
+          ) : null}
           {state.error ? <p className="inlet-warn">{state.error}</p> : null}
 
           <button
@@ -149,6 +159,14 @@ export function DepositWidget({ destinations, relayerUrl, sources = defaultSourc
             onClick={() => state.quote && void deposit(state.quote)}
           >
             {state.phase === "creating" ? "Registering intent" : state.phase === "signing" ? "Waiting for your wallet" : state.phase === "sending" ? "Sending" : state.phase === "quoting" ? "Quoting" : "Deposit"}
+          </button>
+          <button
+            className="inlet-secondary"
+            type="button"
+            disabled={busy || state.phase === "quoting"}
+            onClick={() => void fundGateway(amount).then((tx) => tx && setGatewayTx(tx))}
+          >
+            Add {amount || "0"} USDC to my Gateway balance
           </button>
         </div>
       )}
