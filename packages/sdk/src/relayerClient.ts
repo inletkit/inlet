@@ -7,6 +7,21 @@ export interface RelayerHealth {
   ok: boolean;
   hub: Hex;
   relayer: Hex;
+  destinations?: number[];
+  uniswapQuotes?: boolean;
+}
+
+export interface UniswapQuote {
+  chainId: number;
+  tokenIn: Hex;
+  tokenOut: Hex;
+  amountIn: string;
+  amountOut: string;
+  route: { type: string; address: string }[];
+  priceImpact?: number;
+  gasFeeUsd?: string;
+  requestId?: string;
+  fetchedAt: number;
 }
 
 export class InletRelayerClient {
@@ -35,6 +50,12 @@ export class InletRelayerClient {
 
   async getIntent(hash: Hex): Promise<IntentRecord> {
     return this.request("GET", `/intents/${hash}`);
+  }
+
+  async uniswapQuote(params: { chainId: number; tokenIn: Hex; tokenOut: Hex; amount: bigint }): Promise<UniswapQuote> {
+    const query = new URLSearchParams({ chainId: String(params.chainId), tokenIn: params.tokenIn, tokenOut: params.tokenOut, amount: params.amount.toString() });
+    const response = await this.fetch(`/quotes/uniswap?${query}`, { method: "GET" });
+    return (await response.json()) as UniswapQuote;
   }
 
   private async request(method: string, path: string, body?: unknown): Promise<IntentRecord> {

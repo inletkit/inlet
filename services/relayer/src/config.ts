@@ -13,6 +13,7 @@ export interface RelayerConfig {
   hub: Address;
   hubDomain: number;
   receivers: Record<number, Address>;
+  uniswapApiKey?: string;
 }
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): RelayerConfig {
@@ -36,5 +37,6 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): RelayerConfig 
     hub: testnetDeployments.arcTestnet.inletHub as Address,
     hubDomain: 26,
     receivers: receiversByDomain(),
+    uniswapApiKey: env.UNISWAP_API_KEY?.trim() || undefined,
   };
 }

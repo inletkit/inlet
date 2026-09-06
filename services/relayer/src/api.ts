@@ -1,10 +1,11 @@
 import cors from "@fastify/cors";
 import { hashIntent, inletHubAbi, parseBurnIntent, parseIntent, serializeIntent, toBytes32, type Route } from "@inletkit/sdk";
 import Fastify from "fastify";
-import type { Hex } from "viem";
+import { isAddress, type Address, type Hex } from "viem";
 import type { ChainContext } from "./chains.js";
 import type { RelayerConfig } from "./config.js";
 import type { IntentStore, StoredIntent } from "./db.js";
+import { UniswapQuoter } from "./uniswap.js";
 
 export async function buildApp(config: RelayerConfig, chains: Record<number, ChainContext>, store: IntentStore) {
   const app = Fastify({ logger: false });
@@ -12,7 +13,21 @@ export async function buildApp(config: RelayerConfig, chains: Record<number, Cha
   await app.register(cors, { origin: origins.includes("*") ? true : origins });
   const arc = chains[config.hubDomain];
 
-  app.get("/health", async () => ({ ok: true, hub: config.hub, relayer: arc.walletClient.account?.address }));
+  const relayerAddress = arc.walletClient.account?.address as Address;
+  const quoter = config.uniswapApiKey ? new UniswapQuoter(config.uniswapApiKey, relayerAddress) : undefined;
+
+  app.get("/health", async () => ({ ok: true, hub: config.hub, relayer: relayerAddress, destinations: Object.keys(config.receivers).map(Number), uniswapQuotes: Boolean(quoter) }));
+
+  app.get<{ Querystring: { chainId: string; tokenIn: Address; tokenOut: Address; amount: string } }>("/quotes/uniswap", async (request, reply) => {
+    if (!quoter) return reply.code(404).send({ error: "Uniswap quotes are not configured on this relayer" });
+    const { chainId, tokenIn, tokenOut, amount } = request.query;
+    if (!chainId || !isAddress(tokenIn) || !isAddress(tokenOut) || !/^\d+$/.test(amount ?? "")) return reply.code(400).send({ error: "chainId, tokenIn, tokenOut and amount are required" });
+    try {
+      return await quoter.quote(Number(chainId), tokenIn, tokenOut, BigInt(amount));
+    } catch (error) {
+      return reply.code(502).send({ error: error instanceof Error ? error.message : String(error) });
+    }
+  });
 
   app.post<{ Body: { intent: Record<string, unknown>; route: Route } }>("/intents", async (request, reply) => {
     const intent = parseIntent(request.body.intent);
