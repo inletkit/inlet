@@ -4,6 +4,7 @@ pragma solidity ^0.8.28;
 import {Script, console} from "forge-std/Script.sol";
 import {InletReceiver} from "../src/InletReceiver.sol";
 import {AaveV3Adapter} from "../src/adapters/AaveV3Adapter.sol";
+import {CompoundV3Adapter} from "../src/adapters/CompoundV3Adapter.sol";
 
 /// @notice Deploys the adapter named by NAME and registers it on RECEIVER.
 contract DeployAdapter is Script {
@@ -23,6 +24,7 @@ contract DeployAdapter is Script {
     function _deploy(string memory name) internal returns (address) {
         bytes32 key = keccak256(bytes(name));
         if (key == keccak256("aave-v3")) return address(new AaveV3Adapter());
+        if (key == keccak256("compound-v3")) return address(new CompoundV3Adapter());
         revert("unknown adapter name");
     }
 }
