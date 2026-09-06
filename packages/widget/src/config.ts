@@ -1,4 +1,4 @@
-import { adapterId, erc4626AdapterData, testnetChains, testnetDeployments } from "@inletkit/sdk";
+import { aaveV3AdapterData, adapterId, erc4626AdapterData, fromBytes32, testnetChains, testnetDeployments, testnetProtocols, type IntentRecord } from "@inletkit/sdk";
 import type { Address } from "viem";
 import type { Destination, SourceChain } from "./types.js";
 
@@ -6,6 +6,7 @@ export const explorers: Record<number, string> = {
   0: "https://sepolia.etherscan.io/tx/",
   3: "https://sepolia.arbiscan.io/tx/",
   6: "https://sepolia.basescan.org/tx/",
+  10: "https://sepolia.uniscan.xyz/tx/",
   26: "https://testnet.arcscan.app/tx/",
   27: "https://stellar.expert/explorer/testnet/tx/",
 };
@@ -59,6 +60,28 @@ export function erc4626Destination(params: {
   };
 }
 
+export function aaveV3Destination(params: {
+  id: string;
+  name: string;
+  description?: string;
+  destinationDomain: number;
+  receiver: Address;
+  pool: Address;
+  positionLabel?: string;
+}): Destination {
+  return {
+    id: params.id,
+    name: params.name,
+    description: params.description,
+    destinationDomain: params.destinationDomain,
+    receiver: params.receiver,
+    adapterId: adapterId("aave-v3:v1"),
+    adapterData: () => aaveV3AdapterData(params.pool, 0n),
+    positionLabel: params.positionLabel ?? "aTokens",
+    explorer: explorers[params.destinationDomain] ?? "",
+  };
+}
+
 export const demoVaultDestination = erc4626Destination({
   id: "demo-vault",
   name: "Inlet Demo Vault",
@@ -67,3 +90,24 @@ export const demoVaultDestination = erc4626Destination({
   receiver: testnetDeployments.arbitrumSepolia.inletReceiver as Address,
   vault: testnetDeployments.arbitrumSepolia.demoVault as Address,
 });
+
+export const aaveArbitrumSepoliaDestination = aaveV3Destination({
+  id: "aave-v3-arbitrum-sepolia",
+  name: "Aave V3 on Arbitrum Sepolia",
+  description: "Supplies USDC to Aave's Arbitrum Sepolia market. You receive aArbSepUSDC.",
+  destinationDomain: 3,
+  receiver: testnetDeployments.arbitrumSepolia.inletReceiver as Address,
+  pool: testnetProtocols.arbitrumSepolia.aaveV3Pool as Address,
+  positionLabel: "aArbSepUSDC",
+});
+
+export const testnetDestinations: Destination[] = [aaveArbitrumSepoliaDestination, demoVaultDestination];
+
+export function findDestination(record: Pick<IntentRecord, "intent">, candidates: Destination[] = testnetDestinations): Destination | undefined {
+  const sameRoute = candidates.filter(
+    (entry) => entry.destinationDomain === record.intent.destinationDomain && entry.adapterId.toLowerCase() === record.intent.adapterId.toLowerCase(),
+  );
+  const beneficiary = fromBytes32(record.intent.beneficiary);
+  const amount = record.intent.amount;
+  return sameRoute.find((entry) => entry.adapterData({ beneficiary, amount }).toLowerCase() === record.intent.adapterData.toLowerCase()) ?? sameRoute[0];
+}

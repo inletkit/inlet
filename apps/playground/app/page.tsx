@@ -1,6 +1,6 @@
 "use client";
 
-import { DepositWidget, demoVaultDestination } from "@inletkit/widget";
+import { DepositWidget, testnetDestinations } from "@inletkit/widget";
 
 export default function Home() {
   return (
@@ -25,7 +25,7 @@ export default function Home() {
           </li>
         </ul>
       </div>
-      <DepositWidget destinations={[demoVaultDestination]} />
+      <DepositWidget destinations={testnetDestinations} />
     </main>
   );
 }

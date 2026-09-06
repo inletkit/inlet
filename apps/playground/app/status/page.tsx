@@ -1,7 +1,7 @@
 "use client";
 
 import { InletRelayerClient, type IntentRecord } from "@inletkit/sdk";
-import { StatusTimeline, demoVaultDestination } from "@inletkit/widget";
+import { StatusTimeline, findDestination, testnetDestinations } from "@inletkit/widget";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { relayerUrl } from "../providers";
@@ -35,7 +35,7 @@ function Status() {
   return (
     <div className="card">
       <p className="muted">Intent {hash}</p>
-      <StatusTimeline record={record} destination={demoVaultDestination} />
+      <StatusTimeline record={record} destination={findDestination(record) ?? testnetDestinations[0]} />
     </div>
   );
 }
