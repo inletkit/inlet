@@ -1,4 +1,4 @@
-import { aaveV3AdapterData, adapterId, erc4626AdapterData, fromBytes32, testnetChains, testnetDeployments, testnetProtocols, type IntentRecord } from "@inletkit/sdk";
+import { aaveV3AdapterData, adapterId, compoundV3AdapterData, erc4626AdapterData, fromBytes32, testnetChains, testnetDeployments, testnetProtocols, type IntentRecord } from "@inletkit/sdk";
 import type { Address } from "viem";
 import type { Destination, SourceChain } from "./types.js";
 
@@ -82,6 +82,28 @@ export function aaveV3Destination(params: {
   };
 }
 
+export function compoundV3Destination(params: {
+  id: string;
+  name: string;
+  description?: string;
+  destinationDomain: number;
+  receiver: Address;
+  comet: Address;
+  positionLabel?: string;
+}): Destination {
+  return {
+    id: params.id,
+    name: params.name,
+    description: params.description,
+    destinationDomain: params.destinationDomain,
+    receiver: params.receiver,
+    adapterId: adapterId("compound-v3:v1"),
+    adapterData: () => compoundV3AdapterData(params.comet, 0n),
+    positionLabel: params.positionLabel ?? "supply balance",
+    explorer: explorers[params.destinationDomain] ?? "",
+  };
+}
+
 export const demoVaultDestination = erc4626Destination({
   id: "demo-vault",
   name: "Inlet Demo Vault",
@@ -101,7 +123,27 @@ export const aaveArbitrumSepoliaDestination = aaveV3Destination({
   positionLabel: "aArbSepUSDC",
 });
 
-export const testnetDestinations: Destination[] = [aaveArbitrumSepoliaDestination, demoVaultDestination];
+export const compoundBaseSepoliaDestination = compoundV3Destination({
+  id: "compound-v3-base-sepolia",
+  name: "Compound III on Base Sepolia",
+  description: "Supplies USDC to Compound's Base Sepolia USDC market, credited to your account.",
+  destinationDomain: 6,
+  receiver: testnetDeployments.baseSepolia.inletReceiver as Address,
+  comet: testnetProtocols.baseSepolia.compoundV3Comet as Address,
+  positionLabel: "Compound USDC balance",
+});
+
+export const morphoBaseSepoliaDestination = erc4626Destination({
+  id: "morpho-oneshot-base-sepolia",
+  name: "Morpho Oneshot Vault on Base Sepolia",
+  description: "Deposits into the Oneshot MetaMorpho vault over USDC. You receive vUSDC shares.",
+  destinationDomain: 6,
+  receiver: testnetDeployments.baseSepolia.inletReceiver as Address,
+  vault: testnetProtocols.baseSepolia.morphoOneshotVault as Address,
+  positionLabel: "vUSDC shares",
+});
+
+export const testnetDestinations: Destination[] = [aaveArbitrumSepoliaDestination, compoundBaseSepoliaDestination, morphoBaseSepoliaDestination, demoVaultDestination];
 
 export function findDestination(record: Pick<IntentRecord, "intent">, candidates: Destination[] = testnetDestinations): Destination | undefined {
   const sameRoute = candidates.filter(

@@ -1,5 +1,5 @@
-import { aaveV3AdapterData, adapterId, demoVaultAbi, erc4626AdapterData, testnetChains, testnetDeployments, testnetProtocols, toBytes32 } from "@inletkit/sdk";
-import { createPublicClient, erc20Abi, http, type Address, type Chain, type Hex } from "viem";
+import { aaveV3AdapterData, adapterId, compoundV3AdapterData, demoVaultAbi, erc4626AdapterData, testnetChains, testnetDeployments, testnetProtocols, toBytes32 } from "@inletkit/sdk";
+import { createPublicClient, erc20Abi, http, type Address, type Chain, type Hex, type PublicClient } from "viem";
 import { arbitrumSepolia, baseSepolia, sepolia, unichainSepolia } from "viem/chains";
 
 export interface E2eDestination {
@@ -15,9 +15,10 @@ export interface E2eDestination {
 
 const rpc = (key: keyof typeof testnetChains) => (testnetChains[key] as { rpc: string }).rpc;
 
-const arbitrum = createPublicClient({ chain: arbitrumSepolia, transport: http(rpc("arbitrumSepolia")) });
+const arbitrum = createPublicClient({ chain: arbitrumSepolia, transport: http(rpc("arbitrumSepolia")) }) as PublicClient;
+const base = createPublicClient({ chain: baseSepolia, transport: http(rpc("baseSepolia")) }) as PublicClient;
 
-function balanceReader(client: ReturnType<typeof createPublicClient>, token: Address) {
+function balanceReader(client: PublicClient, token: Address) {
   return (user: Address) => client.readContract({ address: token, abi: erc20Abi, functionName: "balanceOf", args: [user] });
 }
 
@@ -41,6 +42,26 @@ export const destinations: Record<string, E2eDestination> = {
     adapterData: aaveV3AdapterData(testnetProtocols.arbitrumSepolia.aaveV3Pool as Address, 0n),
     positionLabel: "aArbSepUSDC",
     position: balanceReader(arbitrum, testnetProtocols.arbitrumSepolia.aaveV3AUsdc as Address),
+  },
+  compound: {
+    name: "Compound III on Base Sepolia",
+    domain: 6,
+    chain: baseSepolia,
+    receiver: testnetDeployments.baseSepolia.inletReceiver as Address,
+    adapterId: adapterId("compound-v3:v1"),
+    adapterData: compoundV3AdapterData(testnetProtocols.baseSepolia.compoundV3Comet as Address, 0n),
+    positionLabel: "Compound USDC balance",
+    position: balanceReader(base, testnetProtocols.baseSepolia.compoundV3Comet as Address),
+  },
+  morpho: {
+    name: "Morpho Oneshot Vault on Base Sepolia",
+    domain: 6,
+    chain: baseSepolia,
+    receiver: testnetDeployments.baseSepolia.inletReceiver as Address,
+    adapterId: adapterId("erc4626:v1"),
+    adapterData: erc4626AdapterData(testnetProtocols.baseSepolia.morphoOneshotVault as Address, 0n),
+    positionLabel: "vUSDC shares",
+    position: balanceReader(base, testnetProtocols.baseSepolia.morphoOneshotVault as Address),
   },
 };
 
