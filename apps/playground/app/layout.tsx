@@ -20,7 +20,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               <span>
                 <a href="/integrate/">Integrate</a>
                 <a href="/status/">Status</a>
-                <a href="https://github.com/inletkit/inlet" target="_blank" rel="noreferrer">GitHub</a>
+                <a href="https://github.com/y4hyya/inlet" target="_blank" rel="noreferrer">GitHub</a>
               </span>
             </nav>
             {children}
