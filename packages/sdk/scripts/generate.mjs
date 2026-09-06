@@ -7,7 +7,7 @@ const repo = join(here, "..", "..", "..");
 const out = join(here, "..", "src", "generated");
 mkdirSync(out, { recursive: true });
 
-const contracts = ["InletHub", "InletReceiver", "ERC4626Adapter", "DemoVault"];
+const contracts = ["InletHub", "InletReceiver", "ERC4626Adapter", "AaveV3Adapter", "DemoVault"];
 let abi = "";
 for (const name of contracts) {
   const artifact = JSON.parse(readFileSync(join(repo, "contracts", "out", `${name}.sol`, `${name}.json`), "utf8"));
@@ -22,4 +22,7 @@ writeFileSync(join(out, "chains.ts"), `export const testnetChains = ${chains.tri
 const deployments = readFileSync(join(repo, "config", "deployments.testnet.json"), "utf8");
 writeFileSync(join(out, "deployments.ts"), `export const testnetDeployments = ${deployments.trim()} as const;\n`);
 
-console.log("generated abi, chains, deployments");
+const protocols = readFileSync(join(repo, "config", "protocols.testnet.json"), "utf8");
+writeFileSync(join(out, "protocols.ts"), `export const testnetProtocols = ${protocols.trim()} as const;\n`);
+
+console.log("generated abi, chains, deployments, protocols");

@@ -58,6 +58,10 @@ export function erc4626AdapterData(vault: Address, minShares: bigint = 0n): Hex 
   return encodeAbiParameters([{ type: "address" }, { type: "uint256" }], [vault, minShares]);
 }
 
+export function aaveV3AdapterData(pool: Address, minATokens: bigint = 0n): Hex {
+  return encodeAbiParameters([{ type: "address" }, { type: "uint256" }], [pool, minATokens]);
+}
+
 export function serializeIntent(intent: DepositIntent) {
   return {
     ...intent,

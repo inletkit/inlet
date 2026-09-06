@@ -35,6 +35,30 @@ export const testnetChains = {
     "gatewayWallet": "0x0077777d7EBA4688BDeF3E311b846F25870A19B9",
     "gatewayMinter": "0x0022222ABE238Cc2C7Bb1f21003F0a260052475B"
   },
+  "unichainSepolia": {
+    "chainId": 1301,
+    "cctpDomain": 10,
+    "rpc": "https://sepolia.unichain.org",
+    "explorer": "https://sepolia.uniscan.xyz",
+    "usdc": "0x31d0220469e10c4E71834a79b1f276d740d3768F",
+    "tokenMessengerV2": "0x8FE6B999Dc680CcFDD5Bf7EB0974218be2542DAA",
+    "messageTransmitterV2": "0xE737e5cEBEEBa77EFE34D4aa090756590b1CE275",
+    "gatewayDomain": 10,
+    "gatewayWallet": "0x0077777d7EBA4688BDeF3E311b846F25870A19B9",
+    "gatewayMinter": "0x0022222ABE238Cc2C7Bb1f21003F0a260052475B"
+  },
+  "ethereumSepolia": {
+    "chainId": 11155111,
+    "cctpDomain": 0,
+    "rpc": "https://ethereum-sepolia-rpc.publicnode.com",
+    "explorer": "https://sepolia.etherscan.io",
+    "usdc": "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
+    "tokenMessengerV2": "0x8FE6B999Dc680CcFDD5Bf7EB0974218be2542DAA",
+    "messageTransmitterV2": "0xE737e5cEBEEBa77EFE34D4aa090756590b1CE275",
+    "gatewayDomain": 0,
+    "gatewayWallet": "0x0077777d7EBA4688BDeF3E311b846F25870A19B9",
+    "gatewayMinter": "0x0022222ABE238Cc2C7Bb1f21003F0a260052475B"
+  },
   "stellarTestnet": {
     "cctpDomain": 27,
     "network": "Test SDF Network ; September 2015",

@@ -6,3 +6,4 @@ export * from "./relayerClient.js";
 export * from "./generated/abi.js";
 export * from "./generated/chains.js";
 export * from "./generated/deployments.js";
+export * from "./generated/protocols.js";
