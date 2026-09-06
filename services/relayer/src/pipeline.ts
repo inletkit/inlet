@@ -33,7 +33,8 @@ export class Pipeline {
   }
 
   private async guarded(record: StoredIntent, step: () => Promise<void>) {
-    if (record.error && Date.now() - record.updatedAt < 30_000) return;
+    const backoff = record.error && /nonce/i.test(record.error) ? 5_000 : 30_000;
+    if (record.error && Date.now() - record.updatedAt < backoff) return;
     try {
       await step();
     } catch (error) {

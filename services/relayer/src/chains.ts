@@ -1,5 +1,5 @@
 import { testnetChains, testnetDeployments } from "@inletkit/sdk";
-import { createPublicClient, createWalletClient, http, type Address, type Chain, type PublicClient, type WalletClient } from "viem";
+import { createPublicClient, createWalletClient, http, nonceManager, type Address, type Chain, type PublicClient, type WalletClient } from "viem";
 import { privateKeyToAccount, type PrivateKeyAccount } from "viem/accounts";
 import { arbitrumSepolia, arcTestnet, baseSepolia, sepolia, unichainSepolia } from "viem/chains";
 import type { RelayerConfig } from "./config.js";
@@ -50,7 +50,7 @@ export function receiversByDomain(): Record<number, Address> {
 }
 
 export function buildChains(config: RelayerConfig): { account: PrivateKeyAccount; byDomain: Record<number, ChainContext> } {
-  const account = privateKeyToAccount(config.privateKey);
+  const account = privateKeyToAccount(config.privateKey, { nonceManager });
   const byDomain: Record<number, ChainContext> = {};
   for (const { config: entry } of evmChains) {
     const chain = viemChains[entry.chainId];
