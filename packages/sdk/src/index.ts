@@ -3,6 +3,7 @@ export * from "./intent.js";
 export * from "./circle.js";
 export * from "./gateway.js";
 export * from "./relayerClient.js";
+export * from "./destinations.js";
 export * from "./generated/abi.js";
 export * from "./generated/chains.js";
 export * from "./generated/deployments.js";

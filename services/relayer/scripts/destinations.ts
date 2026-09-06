@@ -1,4 +1,4 @@
-import { aaveV3AdapterData, adapterId, compoundV3AdapterData, demoVaultAbi, erc4626AdapterData, testnetChains, testnetDeployments, testnetProtocols, toBytes32, uniswapV4LpAdapterData } from "@inletkit/sdk";
+import { demoVaultAbi, testnetChains, testnetDeployments, testnetDestinations as catalog, testnetProtocols, toBytes32 } from "@inletkit/sdk";
 import { createPublicClient, erc20Abi, http, type Address, type Chain, type Hex, type PublicClient } from "viem";
 import { arbitrumSepolia, baseSepolia, sepolia, unichainSepolia } from "viem/chains";
 
@@ -23,72 +23,37 @@ function balanceReader(client: PublicClient, token: Address) {
   return (user: Address) => client.readContract({ address: token, abi: erc20Abi, functionName: "balanceOf", args: [user] });
 }
 
-export const destinations: Record<string, E2eDestination> = {
-  "demo-vault": {
-    name: "Inlet demo vault on Arbitrum Sepolia",
-    domain: 3,
-    chain: arbitrumSepolia,
-    receiver: testnetDeployments.arbitrumSepolia.inletReceiver as Address,
-    adapterId: adapterId("erc4626:v1"),
-    adapterData: erc4626AdapterData(testnetDeployments.arbitrumSepolia.demoVault as Address, 0n),
-    positionLabel: "vault shares",
-    position: (user) => arbitrum.readContract({ address: testnetDeployments.arbitrumSepolia.demoVault as Address, abi: demoVaultAbi, functionName: "balanceOf", args: [user] }),
-  },
-  aave: {
-    name: "Aave V3 on Arbitrum Sepolia",
-    domain: 3,
-    chain: arbitrumSepolia,
-    receiver: testnetDeployments.arbitrumSepolia.inletReceiver as Address,
-    adapterId: adapterId("aave-v3:v1"),
-    adapterData: aaveV3AdapterData(testnetProtocols.arbitrumSepolia.aaveV3Pool as Address, 0n),
-    positionLabel: "aArbSepUSDC",
-    position: balanceReader(arbitrum, testnetProtocols.arbitrumSepolia.aaveV3AUsdc as Address),
-  },
-  compound: {
-    name: "Compound III on Base Sepolia",
-    domain: 6,
-    chain: baseSepolia,
-    receiver: testnetDeployments.baseSepolia.inletReceiver as Address,
-    adapterId: adapterId("compound-v3:v1"),
-    adapterData: compoundV3AdapterData(testnetProtocols.baseSepolia.compoundV3Comet as Address, 0n),
-    positionLabel: "Compound USDC balance",
-    position: balanceReader(base, testnetProtocols.baseSepolia.compoundV3Comet as Address),
-  },
-  morpho: {
-    name: "Morpho Oneshot Vault on Base Sepolia",
-    domain: 6,
-    chain: baseSepolia,
-    receiver: testnetDeployments.baseSepolia.inletReceiver as Address,
-    adapterId: adapterId("erc4626:v1"),
-    adapterData: erc4626AdapterData(testnetProtocols.baseSepolia.morphoOneshotVault as Address, 0n),
-    positionLabel: "vUSDC shares",
-    position: balanceReader(base, testnetProtocols.baseSepolia.morphoOneshotVault as Address),
-  },
-  uniswap: {
-    name: "Uniswap v4 ETH/USDC on Unichain Sepolia",
-    domain: 10,
-    chain: unichainSepolia,
-    receiver: testnetDeployments.unichainSepolia.inletReceiver as Address,
-    adapterId: adapterId("uniswap-v4-lp:v1"),
-    adapterData: uniswapV4LpAdapterData(
-      {
-        currency0: "0x0000000000000000000000000000000000000000",
-        currency1: testnetChains.unichainSepolia.usdc as Address,
-        fee: testnetProtocols.unichainSepolia.ethUsdcPool.fee,
-        tickSpacing: testnetProtocols.unichainSepolia.ethUsdcPool.tickSpacing,
-        hooks: "0x0000000000000000000000000000000000000000",
-      },
-      1200,
-      1n,
-    ),
-    positionLabel: "Uniswap v4 positions owned",
-    position: balanceReader(unichain, testnetProtocols.unichainSepolia.uniswapV4PositionManager as Address),
-  },
+const readers: Record<string, (user: Address) => Promise<bigint>> = {
+  "demo-vault": (user) => arbitrum.readContract({ address: testnetDeployments.arbitrumSepolia.demoVault as Address, abi: demoVaultAbi, functionName: "balanceOf", args: [user] }),
+  "aave-v3-arbitrum-sepolia": balanceReader(arbitrum, testnetProtocols.arbitrumSepolia.aaveV3AUsdc as Address),
+  "compound-v3-base-sepolia": balanceReader(base, testnetProtocols.baseSepolia.compoundV3Comet as Address),
+  "morpho-oneshot-base-sepolia": balanceReader(base, testnetProtocols.baseSepolia.morphoOneshotVault as Address),
+  "uniswap-v4-eth-usdc-unichain-sepolia": balanceReader(unichain, testnetProtocols.unichainSepolia.uniswapV4PositionManager as Address),
 };
+
+const aliases: Record<string, string> = { aave: "aave-v3-arbitrum-sepolia", compound: "compound-v3-base-sepolia", morpho: "morpho-oneshot-base-sepolia", uniswap: "uniswap-v4-eth-usdc-unichain-sepolia" };
+
+const chains: Record<number, Chain> = { 3: arbitrumSepolia, 6: baseSepolia, 10: unichainSepolia, 0: sepolia };
+
+export const destinations: Record<string, E2eDestination> = Object.fromEntries(
+  catalog.map((spec) => [
+    spec.id,
+    {
+      name: spec.name,
+      domain: spec.destinationDomain,
+      chain: chains[spec.destinationDomain],
+      receiver: spec.receiver,
+      adapterId: spec.adapterId,
+      adapterData: spec.adapterData,
+      positionLabel: spec.id === "uniswap-v4-eth-usdc-unichain-sepolia" ? "Uniswap v4 positions owned" : spec.positionLabel,
+      position: readers[spec.id],
+    },
+  ]),
+);
 
 export function pickDestination(): E2eDestination {
   const key = process.env.DESTINATION ?? "demo-vault";
-  const destination = destinations[key];
+  const destination = destinations[aliases[key] ?? key];
   if (!destination) throw new Error(`DESTINATION must be one of ${Object.keys(destinations).join(", ")}`);
   return destination;
 }

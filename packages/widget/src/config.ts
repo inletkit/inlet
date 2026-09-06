@@ -1,15 +1,22 @@
-import { aaveV3AdapterData, adapterId, compoundV3AdapterData, erc4626AdapterData, fromBytes32, testnetChains, testnetDeployments, testnetProtocols, uniswapV4LpAdapterData, type IntentRecord, type PoolKey } from "@inletkit/sdk";
+import {
+  aaveV3AdapterData,
+  adapterId,
+  compoundV3AdapterData,
+  erc4626AdapterData,
+  explorers as sdkExplorers,
+  fromBytes32,
+  testnetChains,
+  testnetDestinations as catalog,
+  testnetSources,
+  uniswapV4LpAdapterData,
+  type DestinationSpec,
+  type IntentRecord,
+  type PoolKey,
+} from "@inletkit/sdk";
 import type { Address } from "viem";
 import type { Destination, PriceHint, SourceChain } from "./types.js";
 
-export const explorers: Record<number, string> = {
-  0: "https://sepolia.etherscan.io/tx/",
-  3: "https://sepolia.arbiscan.io/tx/",
-  6: "https://sepolia.basescan.org/tx/",
-  10: "https://sepolia.uniscan.xyz/tx/",
-  26: "https://testnet.arcscan.app/tx/",
-  27: "https://stellar.expert/explorer/testnet/tx/",
-};
+export const explorers = sdkExplorers;
 
 export const irisApi = testnetChains.circle.irisApi;
 export const gatewayApi = testnetChains.circle.gatewayApi;
@@ -17,26 +24,7 @@ export const hubDomain = 26;
 export const arcGatewayMinter = testnetChains.arcTestnet.gatewayMinter as Address;
 export const arcUsdc = testnetChains.arcTestnet.usdc as Address;
 
-export const defaultSources: SourceChain[] = [
-  {
-    domain: 6,
-    chainId: testnetChains.baseSepolia.chainId,
-    name: "Base Sepolia",
-    usdc: testnetChains.baseSepolia.usdc as Address,
-    tokenMessenger: testnetChains.baseSepolia.tokenMessengerV2 as Address,
-    gatewayWallet: testnetChains.baseSepolia.gatewayWallet as Address,
-    explorer: explorers[6],
-  },
-  {
-    domain: 3,
-    chainId: testnetChains.arbitrumSepolia.chainId,
-    name: "Arbitrum Sepolia",
-    usdc: testnetChains.arbitrumSepolia.usdc as Address,
-    tokenMessenger: testnetChains.arbitrumSepolia.tokenMessengerV2 as Address,
-    gatewayWallet: testnetChains.arbitrumSepolia.gatewayWallet as Address,
-    explorer: explorers[3],
-  },
-];
+export const defaultSources: SourceChain[] = testnetSources.filter((entry) => entry.domain === 6 || entry.domain === 3);
 
 export function erc4626Destination(params: {
   id: string;
@@ -129,78 +117,38 @@ export function uniswapV4LpDestination(params: {
   };
 }
 
-export const demoVaultDestination = erc4626Destination({
-  id: "demo-vault",
-  name: "Inlet Demo Vault",
-  description: "An ERC 4626 vault over USDC on Arbitrum Sepolia.",
-  destinationDomain: 3,
-  receiver: testnetDeployments.arbitrumSepolia.inletReceiver as Address,
-  vault: testnetDeployments.arbitrumSepolia.demoVault as Address,
-});
-
-export const aaveArbitrumSepoliaDestination = aaveV3Destination({
-  id: "aave-v3-arbitrum-sepolia",
-  name: "Aave V3 on Arbitrum Sepolia",
-  description: "Supplies USDC to Aave's Arbitrum Sepolia market. You receive aArbSepUSDC.",
-  destinationDomain: 3,
-  receiver: testnetDeployments.arbitrumSepolia.inletReceiver as Address,
-  pool: testnetProtocols.arbitrumSepolia.aaveV3Pool as Address,
-  positionLabel: "aArbSepUSDC",
-});
-
-export const compoundBaseSepoliaDestination = compoundV3Destination({
-  id: "compound-v3-base-sepolia",
-  name: "Compound III on Base Sepolia",
-  description: "Supplies USDC to Compound's Base Sepolia USDC market, credited to your account.",
-  destinationDomain: 6,
-  receiver: testnetDeployments.baseSepolia.inletReceiver as Address,
-  comet: testnetProtocols.baseSepolia.compoundV3Comet as Address,
-  positionLabel: "Compound USDC balance",
-});
-
-export const morphoBaseSepoliaDestination = erc4626Destination({
-  id: "morpho-oneshot-base-sepolia",
-  name: "Morpho Oneshot Vault on Base Sepolia",
-  description: "Deposits into the Oneshot MetaMorpho vault over USDC. You receive vUSDC shares.",
-  destinationDomain: 6,
-  receiver: testnetDeployments.baseSepolia.inletReceiver as Address,
-  vault: testnetProtocols.baseSepolia.morphoOneshotVault as Address,
-  positionLabel: "vUSDC shares",
-});
-
-export const unichainEthUsdcPool: PoolKey = {
-  currency0: "0x0000000000000000000000000000000000000000",
-  currency1: testnetChains.unichainSepolia.usdc as Address,
-  fee: testnetProtocols.unichainSepolia.ethUsdcPool.fee,
-  tickSpacing: testnetProtocols.unichainSepolia.ethUsdcPool.tickSpacing,
-  hooks: "0x0000000000000000000000000000000000000000",
+const uniswapPrice: PriceHint = {
+  chainId: testnetChains.unichainSepolia.chainId,
+  tokenIn: testnetChains.unichainSepolia.usdc as Address,
+  tokenOut: "0x0000000000000000000000000000000000000000",
+  tokenOutSymbol: "ETH",
+  tokenOutDecimals: 18,
+  venue: "Uniswap Trading API",
 };
 
-export const uniswapUnichainSepoliaDestination = uniswapV4LpDestination({
-  id: "uniswap-v4-eth-usdc-unichain-sepolia",
-  name: "Uniswap v4 ETH/USDC on Unichain Sepolia",
-  description: "Mints a USDC only liquidity position just below the current ETH price in the v4 pool. You own the position NFT.",
-  destinationDomain: 10,
-  receiver: testnetDeployments.unichainSepolia.inletReceiver as Address,
-  pool: unichainEthUsdcPool,
-  positionLabel: "Uniswap v4 position",
-  price: {
-    chainId: testnetChains.unichainSepolia.chainId,
-    tokenIn: testnetChains.unichainSepolia.usdc as Address,
-    tokenOut: "0x0000000000000000000000000000000000000000",
-    tokenOutSymbol: "ETH",
-    tokenOutDecimals: 18,
-    venue: "Uniswap Trading API",
-  },
-});
+export function fromSpec(spec: DestinationSpec): Destination {
+  return {
+    id: spec.id,
+    name: spec.name,
+    description: spec.description,
+    destinationDomain: spec.destinationDomain,
+    receiver: spec.receiver,
+    adapterId: spec.adapterId,
+    adapterData: () => spec.adapterData,
+    positionLabel: spec.positionLabel,
+    explorer: spec.explorer,
+    price: spec.adapterName === "uniswap-v4-lp:v1" ? uniswapPrice : undefined,
+  };
+}
 
-export const testnetDestinations: Destination[] = [
-  aaveArbitrumSepoliaDestination,
-  compoundBaseSepoliaDestination,
-  morphoBaseSepoliaDestination,
-  uniswapUnichainSepoliaDestination,
-  demoVaultDestination,
-];
+export const testnetDestinations: Destination[] = catalog.map(fromSpec);
+
+const preset = (id: string) => testnetDestinations.find((entry) => entry.id === id)!;
+export const aaveArbitrumSepoliaDestination = preset("aave-v3-arbitrum-sepolia");
+export const compoundBaseSepoliaDestination = preset("compound-v3-base-sepolia");
+export const morphoBaseSepoliaDestination = preset("morpho-oneshot-base-sepolia");
+export const uniswapUnichainSepoliaDestination = preset("uniswap-v4-eth-usdc-unichain-sepolia");
+export const demoVaultDestination = preset("demo-vault");
 
 export function findDestination(record: Pick<IntentRecord, "intent">, candidates: Destination[] = testnetDestinations): Destination | undefined {
   const sameRoute = candidates.filter(

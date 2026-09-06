@@ -13,9 +13,9 @@ export {
   erc4626Destination,
   explorers,
   findDestination,
+  fromSpec,
   morphoBaseSepoliaDestination,
   testnetDestinations,
-  unichainEthUsdcPool,
   uniswapUnichainSepoliaDestination,
   uniswapV4LpDestination,
 } from "./config.js";
