@@ -64,3 +64,5 @@
 .inlet-step-warn { grid-template-columns: 1fr; color: var(--inlet-warn); }
 .inlet-step-note { grid-template-columns: auto auto; justify-content: start; }
 @keyframes inlet-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.4); } }
+
+.inlet-note { margin: 0; padding: 10px 12px; border-radius: 10px; background: var(--inlet-accent-bg, #eef4ff); color: var(--inlet-accent); font-size: 13px; line-height: 1.4; }

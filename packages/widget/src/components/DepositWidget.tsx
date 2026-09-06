@@ -48,8 +48,10 @@ export function DepositWidget({ destinations, relayerUrl, sources = defaultSourc
 
   const destination = destinations.find((entry) => entry.id === destinationId) ?? destinations[0];
   const source = sources.find((entry) => entry.domain === sourceDomain) ?? sources[0];
-  const { state, quote, deposit, fundGateway, reset } = useDeposit({ relayerUrl: url, source, destination });
+  const { state, quote, deposit, fundGateway, reset } = useDeposit({ relayerUrl: url, source, sources, destination });
   const [gatewayTx, setGatewayTx] = useState<string>();
+  const [moved, setMoved] = useState<SourceChain | undefined>();
+  const chainName = (domain: number) => sources.find((entry) => entry.domain === domain)?.name ?? `domain ${domain}`;
 
   useEffect(() => {
     const connected = sources.find((entry) => entry.chainId === chainId);
@@ -63,10 +65,16 @@ export function DepositWidget({ destinations, relayerUrl, sources = defaultSourc
     if (!isConnected || !address) return;
     const handle = setTimeout(() => {
       if (["creating", "signing", "sending", "tracking", "done"].includes(phase.current)) return;
-      void quote(amount, preference);
+      void quote(amount, preference).then((next) => {
+        if (!next || next.sourceDomain === source.domain) return;
+        const target = sources.find((entry) => entry.domain === next.sourceDomain);
+        if (!target) return;
+        setMoved(target);
+        setSourceDomain(target.domain);
+      });
     }, 400);
     return () => clearTimeout(handle);
-  }, [amount, preference, isConnected, address, source, destination, quote]);
+  }, [amount, preference, isConnected, address, source, sources, destination, quote]);
 
   const [price, setPrice] = useState<{ quote: UniswapQuote; amount: string } | undefined>();
   useEffect(() => {
@@ -170,7 +178,7 @@ export function DepositWidget({ destinations, relayerUrl, sources = defaultSourc
             <dl className={`inlet-quote ${quoting ? "inlet-quote-stale" : ""}`}>
               <div>
                 <dt>Route</dt>
-                <dd>{state.quote.route === "gateway" ? "Gateway, one signature, no gas" : "CCTP fast transfer, approve and burn"}</dd>
+                <dd>{state.quote.route === "gateway" ? `Gateway from your ${chainName(state.quote.sourceDomain)} balance, one signature, no gas, no network switch` : `CCTP fast transfer from ${chainName(state.quote.sourceDomain)}, approve and burn`}</dd>
               </div>
               <div>
                 <dt>You send</dt>
@@ -189,8 +197,8 @@ export function DepositWidget({ destinations, relayerUrl, sources = defaultSourc
                 <dd>{usdc(state.quote.walletUsdc)}</dd>
               </div>
               <div>
-                <dt>Gateway balance</dt>
-                <dd>{usdc(state.quote.gatewayAvailable)}</dd>
+                <dt>Gateway balances</dt>
+                <dd>{sources.map((entry) => `${entry.name} ${usdc(state.quote!.gatewayBalances[entry.domain] ?? 0n)}`).join(", ")}</dd>
               </div>
               {destination?.price && price ? (
                 <div>
@@ -204,9 +212,16 @@ export function DepositWidget({ destinations, relayerUrl, sources = defaultSourc
             </dl>
           ) : null}
 
-          {state.quote?.route === "cctp" && state.quote.needsGas ? <p className="inlet-warn">This route needs a little ETH on {source.name} for two transactions. Use Gateway to skip gas entirely.</p> : null}
-          {state.quote?.route === "cctp" && state.quote.walletUsdc < state.quote.sendAmount ? <p className="inlet-warn">Not enough USDC in the wallet on {source.name}.</p> : null}
-          {state.quote?.route === "gateway" && state.quote.gatewayAvailable < state.quote.sendAmount + state.quote.circleFee ? <p className="inlet-warn">Gateway balance does not cover the amount plus fee.</p> : null}
+          {moved && preference === "auto" && state.quote?.sourceDomain === moved.domain ? <p className="inlet-note">Switched From to {moved.name}, where your Gateway balance is. Your wallet stays on its current network.</p> : null}
+          {state.quote?.blocker ? <p className="inlet-warn">{state.quote.blocker}</p> : null}
+          {state.quote?.gatewayElsewhere !== undefined ? (
+            <p className="inlet-warn">
+              Your Gateway balance is on {chainName(state.quote.gatewayElsewhere)}.{" "}
+              <button className="inlet-link" type="button" onClick={() => setSourceDomain(state.quote!.gatewayElsewhere!)}>
+                Use {chainName(state.quote.gatewayElsewhere)}
+              </button>
+            </p>
+          ) : null}
           {gatewayTx ? (
             <p className="inlet-warn">
               Deposited into your Gateway balance in{" "}
@@ -221,7 +236,7 @@ export function DepositWidget({ destinations, relayerUrl, sources = defaultSourc
           <button
             className="inlet-primary"
             type="button"
-            disabled={!state.quote || busy || quoting || relayerStatus !== "online"}
+            disabled={!state.quote || !state.quote.ready || busy || quoting || relayerStatus !== "online"}
             onClick={() => state.quote && void deposit(state.quote)}
           >
             {state.phase === "creating" ? "Registering intent" : state.phase === "signing" ? "Waiting for your wallet" : state.phase === "sending" ? "Sending" : quoting ? "Quoting" : "Deposit"}
@@ -232,7 +247,7 @@ export function DepositWidget({ destinations, relayerUrl, sources = defaultSourc
             disabled={busy || state.phase === "quoting"}
             onClick={() => void fundGateway(amount).then((tx) => tx && setGatewayTx(tx))}
           >
-            Add {amount || "0"} USDC to my Gateway balance
+            Add {amount || "0"} USDC to my Gateway balance on {source.name}
           </button>
         </div>
       )}
