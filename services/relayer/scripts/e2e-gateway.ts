@@ -1,49 +1,36 @@
-import {
-  GATEWAY_EXPIRY_BLOCKS,
-  InletRelayerClient,
-  adapterId,
-  burnIntentTypedData,
-  createBurnIntent,
-  demoVaultAbi,
-  erc4626AdapterData,
-  testnetChains,
-  testnetDeployments,
-  toBytes32,
-  type DepositIntent,
-} from "@inletkit/sdk";
+import { GATEWAY_EXPIRY_BLOCKS, InletRelayerClient, burnIntentTypedData, createBurnIntent, testnetChains, toBytes32, type DepositIntent } from "@inletkit/sdk";
 import { createPublicClient, createWalletClient, http, type Address, type Hex } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import { arbitrumSepolia, baseSepolia } from "viem/chains";
 import { loadConfig } from "../src/config.js";
 import { createRelayer } from "../src/relayer.js";
+import { pickDestination, pickSource } from "./destinations.js";
 
 const amount = BigInt(process.env.E2E_AMOUNT ?? "1000000");
 const config = loadConfig({ ...process.env, DB_PATH: `data/e2e-gateway-${Date.now()}.db`, PORT: "0" });
 const user = privateKeyToAccount((process.env.USER_PRIVATE_KEY ?? config.privateKey) as Hex);
-const receiver = testnetDeployments.arbitrumSepolia.inletReceiver as Address;
-const vault = testnetDeployments.arbitrumSepolia.demoVault as Address;
-const base = createPublicClient({ chain: baseSepolia, transport: http(config.rpc[6]) });
-const signer = createWalletClient({ account: user, chain: baseSepolia, transport: http(config.rpc[6]) });
-const arbitrum = createPublicClient({ chain: arbitrumSepolia, transport: http(config.rpc[3]) });
+const destination = pickDestination();
+const source = pickSource();
+const publicClient = createPublicClient({ chain: source.chain, transport: http(config.rpc[source.domain] ?? source.rpc) });
+const signer = createWalletClient({ account: user, chain: source.chain, transport: http(config.rpc[source.domain] ?? source.rpc) });
 
 const remote = process.env.RELAYER_URL;
 const relayer = remote ? { url: remote, stop: async () => {} } : await createRelayer(config).start();
 const client = new InletRelayerClient(relayer.url);
-console.log(`relayer ${relayer.url}${remote ? " (remote)" : ""}`);
+console.log(`relayer ${relayer.url}${remote ? " (remote)" : ""}, user ${user.address}, ${source.chain.name} into ${destination.name}`);
 const started = Date.now();
 const stamp = () => `${Math.round((Date.now() - started) / 1000)}s`;
 
 try {
-  const sharesBefore = await arbitrum.readContract({ address: vault, abi: demoVaultAbi, functionName: "balanceOf", args: [user.address] });
+  const before = await destination.position(user.address);
 
   const intent: DepositIntent = {
     owner: user.address,
-    sourceDomain: 6,
-    destinationDomain: 3,
-    adapterId: adapterId("erc4626:v1"),
-    receiver: toBytes32(receiver),
+    sourceDomain: source.domain,
+    destinationDomain: destination.domain,
+    adapterId: destination.adapterId,
+    receiver: toBytes32(destination.receiver),
     beneficiary: toBytes32(user.address),
-    adapterData: erc4626AdapterData(vault, 0n),
+    adapterData: destination.adapterData,
     amount,
     nonce: BigInt(Date.now()),
     deadline: BigInt(Math.floor(Date.now() / 1000) + 2 * 3600),
@@ -53,13 +40,13 @@ try {
   const record = await client.createIntent(intent, "gateway");
   console.log(`${stamp()} intent ${record.hash} deposit address ${record.depositAddress}`);
 
-  const block = await base.getBlockNumber();
+  const block = await publicClient.getBlockNumber();
   const burnIntent = createBurnIntent({
-    sourceDomain: 6,
-    destinationDomain: 26,
-    sourceWallet: testnetChains.baseSepolia.gatewayWallet as Address,
+    sourceDomain: source.domain,
+    destinationDomain: config.hubDomain,
+    sourceWallet: source.gatewayWallet,
     destinationMinter: testnetChains.arcTestnet.gatewayMinter as Address,
-    sourceToken: testnetChains.baseSepolia.usdc as Address,
+    sourceToken: source.usdc,
     destinationToken: testnetChains.arcTestnet.usdc as Address,
     depositor: user.address,
     recipient: record.depositAddress,
@@ -83,8 +70,8 @@ try {
     await new Promise((resolve) => setTimeout(resolve, 3000));
   }
 
-  const sharesAfter = await arbitrum.readContract({ address: vault, abi: demoVaultAbi, functionName: "balanceOf", args: [user.address] });
-  console.log(`${stamp()} vault shares before ${sharesBefore} after ${sharesAfter}`);
+  const after = await destination.position(user.address);
+  console.log(`${stamp()} ${destination.positionLabel} before ${before} after ${after}`);
 } finally {
   await relayer.stop();
 }

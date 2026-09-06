@@ -1,5 +1,6 @@
 import { testnetChains, testnetDeployments } from "@inletkit/sdk";
 import type { Address, Hex } from "viem";
+import { receiversByDomain } from "./chains.js";
 
 export interface RelayerConfig {
   privateKey: Hex;
@@ -29,9 +30,11 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): RelayerConfig 
       26: env.ARC_RPC ?? testnetChains.arcTestnet.rpc,
       6: env.BASE_SEPOLIA_RPC ?? testnetChains.baseSepolia.rpc,
       3: env.ARBITRUM_SEPOLIA_RPC ?? testnetChains.arbitrumSepolia.rpc,
+      10: env.UNICHAIN_SEPOLIA_RPC ?? testnetChains.unichainSepolia.rpc,
+      0: env.ETHEREUM_SEPOLIA_RPC ?? testnetChains.ethereumSepolia.rpc,
     },
     hub: testnetDeployments.arcTestnet.inletHub as Address,
     hubDomain: 26,
-    receivers: { 3: testnetDeployments.arbitrumSepolia.inletReceiver as Address },
+    receivers: receiversByDomain(),
   };
 }

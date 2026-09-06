@@ -1,7 +1,7 @@
-import { testnetChains } from "@inletkit/sdk";
+import { testnetChains, testnetDeployments } from "@inletkit/sdk";
 import { createPublicClient, createWalletClient, http, type Address, type Chain, type PublicClient, type WalletClient } from "viem";
 import { privateKeyToAccount, type PrivateKeyAccount } from "viem/accounts";
-import { arbitrumSepolia, arcTestnet, baseSepolia } from "viem/chains";
+import { arbitrumSepolia, arcTestnet, baseSepolia, sepolia, unichainSepolia } from "viem/chains";
 import type { RelayerConfig } from "./config.js";
 
 export interface ChainContext {
@@ -17,30 +17,57 @@ export interface ChainContext {
   fixedGas?: bigint;
 }
 
-const chainByDomain: Record<number, { chain: Chain; key: keyof typeof testnetChains }> = {
-  26: { chain: arcTestnet, key: "arcTestnet" },
-  6: { chain: baseSepolia, key: "baseSepolia" },
-  3: { chain: arbitrumSepolia, key: "arbitrumSepolia" },
+interface EvmChainConfig {
+  chainId: number;
+  cctpDomain: number;
+  rpc: string;
+  usdc: Address;
+  tokenMessengerV2: Address;
+  messageTransmitterV2: Address;
+  gatewayWallet: Address;
+  gatewayMinter: Address;
+}
+
+const viemChains: Record<number, Chain> = {
+  [arcTestnet.id]: arcTestnet,
+  [baseSepolia.id]: baseSepolia,
+  [arbitrumSepolia.id]: arbitrumSepolia,
+  [unichainSepolia.id]: unichainSepolia,
+  [sepolia.id]: sepolia,
 };
+
+export const evmChains = Object.entries(testnetChains).flatMap(([key, entry]) =>
+  "chainId" in entry ? [{ key: key as keyof typeof testnetChains, config: entry as EvmChainConfig }] : [],
+);
+
+export function receiversByDomain(): Record<number, Address> {
+  const receivers: Record<number, Address> = {};
+  for (const { key, config } of evmChains) {
+    const deployment = (testnetDeployments as Record<string, { inletReceiver?: Address }>)[key];
+    if (deployment?.inletReceiver) receivers[config.cctpDomain] = deployment.inletReceiver;
+  }
+  return receivers;
+}
 
 export function buildChains(config: RelayerConfig): { account: PrivateKeyAccount; byDomain: Record<number, ChainContext> } {
   const account = privateKeyToAccount(config.privateKey);
   const byDomain: Record<number, ChainContext> = {};
-  for (const [domainText, entry] of Object.entries(chainByDomain)) {
-    const domain = Number(domainText);
-    const addresses = testnetChains[entry.key] as { usdc: Address; tokenMessengerV2: Address; messageTransmitterV2: Address; gatewayWallet: Address; gatewayMinter: Address };
-    const transport = http(config.rpc[domain]);
+  for (const { config: entry } of evmChains) {
+    const chain = viemChains[entry.chainId];
+    if (!chain) continue;
+    const domain = entry.cctpDomain;
+    const transport = http(config.rpc[domain] ?? entry.rpc);
     byDomain[domain] = {
       domain,
-      chain: entry.chain,
-      publicClient: createPublicClient({ chain: entry.chain, transport }),
-      walletClient: createWalletClient({ account, chain: entry.chain, transport }),
-      usdc: addresses.usdc,
-      tokenMessenger: addresses.tokenMessengerV2,
-      messageTransmitter: addresses.messageTransmitterV2,
-      gatewayWallet: addresses.gatewayWallet,
-      gatewayMinter: addresses.gatewayMinter,
-      fixedGas: domain === 26 ? 1_500_000n : undefined,
+      chain,
+      publicClient: createPublicClient({ chain, transport }),
+      walletClient: createWalletClient({ account, chain, transport }),
+      usdc: entry.usdc,
+      tokenMessenger: entry.tokenMessengerV2,
+      messageTransmitter: entry.messageTransmitterV2,
+      gatewayWallet: entry.gatewayWallet,
+      gatewayMinter: entry.gatewayMinter,
+      fixedGas: domain === config.hubDomain ? 1_500_000n : undefined,
     };
   }
   return { account, byDomain };
