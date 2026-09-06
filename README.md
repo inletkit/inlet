@@ -19,6 +19,12 @@ Under the button, Circle Gateway or CCTP brings native USDC to Arc, the Inlet hu
 
 See `docs/spec.md` for the architecture and `docs/adapters.md` for writing and deploying adapters.
 
+## Diagrams
+
+![How a deposit moves through Inlet](diagram/architecture.png)
+
+Four diagrams live in `diagram/`, each as HTML, SVG and PNG: the architecture above, the [deposit sequence](diagram/deposit-sequence.png) with the Gateway and CCTP routes, the [intent lifecycle](diagram/intent-lifecycle.png) with the refund and claim paths, and the [deployment topology](diagram/deployment.png) on testnet. They follow the editorial rules of the diagram design system by Cathryn Lavery and are regenerated with `diagram/build.py` and exported with `diagram/export.py`.
+
 ## For agents
 
 `apps/mcp` is a stdio MCP server over the same SDK and relayer API the widget uses. Tools: `list_destinations`, `list_sources`, `quote_deposit`, `create_intent` (returns the deposit address and the exact transaction or EIP 712 payload to sign), `report_source_transaction`, `submit_gateway_intent`, `deposit_status`, `uniswap_quote`, and, when `INLET_PRIVATE_KEY` is set, `deposit` and `fund_gateway_balance` which run the whole flow with that wallet.
