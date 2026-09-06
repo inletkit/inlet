@@ -5,6 +5,7 @@ import {Script, console} from "forge-std/Script.sol";
 import {InletReceiver} from "../src/InletReceiver.sol";
 import {AaveV3Adapter} from "../src/adapters/AaveV3Adapter.sol";
 import {CompoundV3Adapter} from "../src/adapters/CompoundV3Adapter.sol";
+import {UniswapV4LpAdapter} from "../src/adapters/UniswapV4LpAdapter.sol";
 
 /// @notice Deploys the adapter named by NAME and registers it on RECEIVER.
 contract DeployAdapter is Script {
@@ -25,6 +26,16 @@ contract DeployAdapter is Script {
         bytes32 key = keccak256(bytes(name));
         if (key == keccak256("aave-v3")) return address(new AaveV3Adapter());
         if (key == keccak256("compound-v3")) return address(new CompoundV3Adapter());
+        if (key == keccak256("uniswap-v4-lp")) {
+            return address(
+                new UniswapV4LpAdapter(
+                    vm.envAddress("POSITION_MANAGER"),
+                    vm.envAddress("STATE_VIEW"),
+                    vm.envAddress("PERMIT2"),
+                    vm.envAddress("USDC")
+                )
+            );
+        }
         revert("unknown adapter name");
     }
 }
