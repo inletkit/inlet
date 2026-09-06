@@ -13,9 +13,15 @@ export const testnetDeployments = {
     "erc4626Adapter": "0x6253A9a287803111eD736c0C234de17bBE7672ED",
     "compoundV3Adapter": "0x77D23de84220E4Dc86b6B8c181Be1E49D6a23f7c"
   },
+  "unichainSepolia": {
+    "inletReceiver": "0x84f3433550d1B6FB7f0BE197eA9faA256962408B",
+    "erc4626Adapter": "0x912c690f95a381e72F63a378fd906C6294412Fc9",
+    "uniswapV4LpAdapter": "0x55da7c3B5e99816A7a9cD9dc47e24bfd7B19D6ED"
+  },
   "adapters": {
     "erc4626:v1": "keccak256 of the string erc4626:v1",
     "aave-v3:v1": "keccak256 of the string aave-v3:v1",
-    "compound-v3:v1": "keccak256 of the string compound-v3:v1"
+    "compound-v3:v1": "keccak256 of the string compound-v3:v1",
+    "uniswap-v4-lp:v1": "keccak256 of the string uniswap-v4-lp:v1"
   }
 } as const;

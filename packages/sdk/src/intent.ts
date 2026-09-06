@@ -66,6 +66,33 @@ export function compoundV3AdapterData(comet: Address, minSupplied: bigint = 0n):
   return encodeAbiParameters([{ type: "address" }, { type: "uint256" }], [comet, minSupplied]);
 }
 
+export interface PoolKey {
+  currency0: Address;
+  currency1: Address;
+  fee: number;
+  tickSpacing: number;
+  hooks: Address;
+}
+
+export const poolKeyAbi = {
+  type: "tuple",
+  components: [
+    { name: "currency0", type: "address" },
+    { name: "currency1", type: "address" },
+    { name: "fee", type: "uint24" },
+    { name: "tickSpacing", type: "int24" },
+    { name: "hooks", type: "address" },
+  ],
+} as const;
+
+export function poolId(key: PoolKey): Hex {
+  return keccak256(encodeAbiParameters([poolKeyAbi], [key]));
+}
+
+export function uniswapV4LpAdapterData(key: PoolKey, rangeTicks: number, minLiquidity: bigint = 0n): Hex {
+  return encodeAbiParameters([poolKeyAbi, { type: "int24" }, { type: "uint128" }], [key, rangeTicks, minLiquidity]);
+}
+
 export function serializeIntent(intent: DepositIntent) {
   return {
     ...intent,
