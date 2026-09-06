@@ -1,6 +1,6 @@
 # Inlet architecture specification
 
-Version 0.2, September 2026. Testnet only. Zero fees.
+Version 0.3, September 2026. Testnet only. Zero fees.
 
 ## 1. Purpose
 
@@ -125,11 +125,13 @@ The Noether entrypoints are provided by the Noether protocol. Inlet depends on t
 
 ### 7.3 Adapters shipped in version 1
 
-- erc4626:v1 on EVM destinations
-- noether-vault:v1 on Stellar, credits NOE to the beneficiary
-- noether-margin:v1 on Stellar, credits the beneficiary's cross margin balance
+- erc4626:v1 on every EVM destination, any ERC 4626 vault over USDC; used for the Morpho Oneshot vault on Base Sepolia and the Inlet demo vault on Arbitrum Sepolia
+- aave-v3:v1 on Arbitrum Sepolia, supplies to Aave V3 and leaves the aToken with the beneficiary
+- compound-v3:v1 on Base Sepolia, supplies to Compound III's USDC market for the beneficiary
+- uniswap-v4-lp:v1 on Unichain Sepolia, mints a single sided USDC liquidity position in a v4 pool, owned by the beneficiary
+- noether-vault:v1 on Stellar, credits NOE to the beneficiary (in progress)
 
-Adding a protocol means writing one adapter and registering its id. No change to the hub, the receiver, or the relayer.
+Adding a protocol means writing one adapter and registering its id. No change to the hub, the receiver, or the relayer. `docs/adapters.md` describes the shipped adapters, their data encodings, and the deployment steps.
 
 ## 8. Relayer
 
@@ -160,7 +162,9 @@ Supported source chains in the demo: Base Sepolia and Arbitrum Sepolia. Arc test
 
 ## 10. Agent surface
 
-An MCP server exposes tools: list adapters, quote, create intent (returns the typed data to sign), submit, and status. A skill document describes how to add the widget and an adapter to an existing application.
+`apps/mcp` is a stdio MCP server over the SDK and the relayer API. Tools: list destinations and sources, quote, create intent (returns the deposit address and either the CCTP calldata or the Gateway typed data to sign), report the source transaction, submit the signed Gateway intent, status, and a Uniswap pool quote. With a wallet key in its environment it also runs a whole deposit as one tool call. `skills/inlet/SKILL.md` teaches a coding agent how to mount the widget, write an adapter, and run a relayer.
+
+The relayer also proxies the Uniswap Trading API behind `GET /quotes/uniswap`, so the widget shows a live pool price for the Uniswap destination without shipping an API key to browsers.
 
 ## 11. Invariants
 
@@ -171,22 +175,18 @@ An MCP server exposes tools: list adapters, quote, create intent (returns the ty
 
 ## 12. Demo configuration
 
-- Source: Base Sepolia, CCTP domain 6.
-- Hub: Arc testnet, chain id 5042002, CCTP and Gateway domain 26.
-- EVM destination: Arbitrum Sepolia, CCTP domain 3, with an ERC 4626 USDC vault.
-- Stellar destination: Stellar testnet, CCTP domain 27, Noether vault and market.
-- Contract addresses for USDC, TokenMessengerV2, MessageTransmitterV2, Gateway, and the Stellar CCTP contracts live in a checked in config file per chain, taken from the Circle documentation.
+- Sources: Base Sepolia (domain 6) and Arbitrum Sepolia (domain 3) in the widget; Unichain Sepolia (10) and Ethereum Sepolia (0) in the SDK.
+- Hub: Arc testnet, chain id 5042002, CCTP and Gateway domain 26, at 0x84f3433550d1B6FB7f0BE197eA9faA256962408B.
+- EVM destinations: Arbitrum Sepolia (domain 3) with Aave V3 and the demo vault; Base Sepolia (domain 6) with Compound III and the Morpho Oneshot vault; Unichain Sepolia (domain 10) with the Uniswap v4 ETH/USDC pool.
+- Stellar destination: Stellar testnet, CCTP domain 27, Noether vault (in progress).
+- Addresses live in `config/chains.testnet.json` (Circle contracts per chain), `config/deployments.testnet.json` (Inlet contracts) and `config/protocols.testnet.json` (third party protocols), all generated into the SDK.
 
-## 13. Build plan
+## 13. Build log
 
 - September 4: skeleton and this specification.
-- September 5 to 6: hub, forwarder, EVM receiver, ERC 4626 adapter, tests, deployment to Arc testnet and Arbitrum Sepolia.
-- September 6 to 7: relayer core; first end to end deposit from Base Sepolia through Arc into the vault.
-- September 8: SDK and widget with Privy; playground and relayer hosted on Azure.
-- September 9 to 10: Stellar receiver, Noether adapters, end to end into NOE.
-- September 11: margin top up through a Gateway delegate, MCP server, skill, documentation.
-- September 12: video, architecture diagram, submission text.
-- September 13: buffer and submission before 12:00 EDT.
+- September 5: hub, forwarder, EVM receiver, ERC 4626 adapter, tests, deployment to Arc testnet and Arbitrum Sepolia; relayer; first end to end deposits over CCTP and Gateway; widget with Privy; playground and relayer hosted on Azure.
+- September 6: Aave V3, Compound III, Morpho and Uniswap v4 destinations live with recorded runs; Base Sepolia and Unichain Sepolia receivers; Uniswap Trading API quotes; MCP server, skill, adapter guide.
+- Next: Stellar receiver and the Noether vault destination, video, architecture diagram, submission.
 
 ## 14. Out of scope for version 1
 

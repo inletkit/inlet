@@ -1,3 +1,5 @@
+import { testnetDestinations, testnetDeployments } from "@inletkit/sdk";
+
 export default function Integrate() {
   return (
     <main className="doc">
@@ -29,7 +31,7 @@ const vault = erc4626Destination({
   function deposit(address usdc, uint256 amount, bytes32 beneficiary, bytes calldata data)
     external returns (bytes memory result);
 }`}</code></pre>
-      <p>Any ERC 4626 vault over USDC needs no adapter at all: the generic one is registered on every receiver.</p>
+      <p>Any ERC 4626 vault over USDC needs no adapter at all: the generic one is registered on every receiver. Aave V3, Compound III and Uniswap v4 pools have adapters shipped in this repository; the guide for writing one is in <code>docs/adapters.md</code>.</p>
 
       <h2>3. Register on the hub</h2>
       <p>The hub on Arc keeps a registry of destination chains and receivers. Your receiver address is allowlisted for your chain's CCTP domain, and your adapter id is registered on the receiver.</p>
@@ -37,13 +39,37 @@ const vault = erc4626Destination({
       <h2>4. Run a relayer, or use ours</h2>
       <p>The relayer is open source. It watches deposit addresses on Arc, sweeps the hub, relays Circle attestations, and executes adapters. Anything it does can also be done by hand: sweep, refund, receive, and claim are permissionless.</p>
 
-      <h2>Addresses on testnet</h2>
+      <h2>5. Or let an agent do it</h2>
+      <p>The MCP server in <code>apps/mcp</code> exposes the same flow as tools: list destinations, quote, create an intent, submit the signed Gateway intent or the burn hash, and follow the status. The skill in <code>skills/inlet</code> teaches a coding agent to integrate the kit.</p>
+
+      <h2>Destinations live on testnet</h2>
+      <table>
+        <thead>
+          <tr><th>Destination</th><th>Chain</th><th>Adapter</th><th>Receiver</th></tr>
+        </thead>
+        <tbody>
+          {testnetDestinations.map((entry) => (
+            <tr key={entry.id}>
+              <td>{entry.name}</td>
+              <td>{entry.chain}</td>
+              <td>{entry.adapterName}</td>
+              <td>{entry.receiver}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      <h2>Inlet contracts on testnet</h2>
       <table>
         <tbody>
-          <tr><th>Hub on Arc testnet</th><td>0x84f3433550d1B6FB7f0BE197eA9faA256962408B</td></tr>
-          <tr><th>Receiver on Arbitrum Sepolia</th><td>0x84f3433550d1B6FB7f0BE197eA9faA256962408B</td></tr>
-          <tr><th>ERC 4626 adapter</th><td>0x912c690f95a381e72F63a378fd906C6294412Fc9</td></tr>
-          <tr><th>Demo vault</th><td>0x55da7c3B5e99816A7a9cD9dc47e24bfd7B19D6ED</td></tr>
+          <tr><th>Hub on Arc testnet</th><td>{testnetDeployments.arcTestnet.inletHub}</td></tr>
+          <tr><th>Receiver on Arbitrum Sepolia</th><td>{testnetDeployments.arbitrumSepolia.inletReceiver}</td></tr>
+          <tr><th>Receiver on Base Sepolia</th><td>{testnetDeployments.baseSepolia.inletReceiver}</td></tr>
+          <tr><th>Receiver on Unichain Sepolia</th><td>{testnetDeployments.unichainSepolia.inletReceiver}</td></tr>
+          <tr><th>Aave V3 adapter, Arbitrum Sepolia</th><td>{testnetDeployments.arbitrumSepolia.aaveV3Adapter}</td></tr>
+          <tr><th>Compound III adapter, Base Sepolia</th><td>{testnetDeployments.baseSepolia.compoundV3Adapter}</td></tr>
+          <tr><th>Uniswap v4 adapter, Unichain Sepolia</th><td>{testnetDeployments.unichainSepolia.uniswapV4LpAdapter}</td></tr>
+          <tr><th>ERC 4626 adapters</th><td>{testnetDeployments.arbitrumSepolia.erc4626Adapter} on Arbitrum Sepolia and Unichain Sepolia, {testnetDeployments.baseSepolia.erc4626Adapter} on Base Sepolia</td></tr>
         </tbody>
       </table>
     </main>

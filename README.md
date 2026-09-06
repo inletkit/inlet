@@ -8,17 +8,34 @@ Under the button, Circle Gateway or CCTP brings native USDC to Arc, the Inlet hu
 
 ## What ships
 
-- `contracts/` the hub on Arc, per intent forwarders, the EVM receiver, and adapters (Foundry)
-- `contracts-stellar/` the Stellar receiver that calls Noether (Soroban)
-- `packages/sdk` intents, signing, Gateway and CCTP helpers, status client
-- `packages/widget` the React deposit widget
-- `packages/adapters` adapter definitions: ERC-4626 vaults, Noether vault, Noether margin
-- `services/relayer` attestation tracking and destination execution
+- `contracts/` the hub on Arc, per intent forwarders, the EVM receiver, and the adapters for ERC 4626 vaults, Aave V3, Compound III and Uniswap v4 (Foundry)
+- `packages/sdk` intents, adapter data encoders, the destination catalog, Gateway and CCTP helpers, the relayer client
+- `packages/widget` the React deposit widget with optional Privy login
+- `services/relayer` deposit tracking, Arc mints, sweeps, attestations, destination execution, refunds, and the Uniswap quote proxy
 - `apps/playground` docs and live demo
-- `apps/mcp` tool server for agents
-- `skills/inlet` agent skill for integrating the kit
+- `apps/mcp` MCP server so agents can deposit through Inlet
+- `skills/inlet` the agent skill for integrating the kit
+- `contracts-stellar/` the Stellar receiver that calls Noether (Soroban), in progress
 
-See `docs/spec.md` for the architecture.
+See `docs/spec.md` for the architecture and `docs/adapters.md` for writing and deploying adapters.
+
+## For agents
+
+`apps/mcp` is a stdio MCP server over the same SDK and relayer API the widget uses. Tools: `list_destinations`, `list_sources`, `quote_deposit`, `create_intent` (returns the deposit address and the exact transaction or EIP 712 payload to sign), `report_source_transaction`, `submit_gateway_intent`, `deposit_status`, `uniswap_quote`, and, when `INLET_PRIVATE_KEY` is set, `deposit` and `fund_gateway_balance` which run the whole flow with that wallet.
+
+```
+{
+  "mcpServers": {
+    "inlet": {
+      "command": "node",
+      "args": ["/path/to/inlet/apps/mcp/dist/index.js"],
+      "env": { "INLET_RELAYER_URL": "https://inlet-relayer.wonderfulforest-6c3e22a4.westeurope.azurecontainerapps.io" }
+    }
+  }
+}
+```
+
+`skills/inlet/SKILL.md` teaches a coding agent how to mount the widget, write an adapter, and run a relayer.
 
 ## Live on testnet
 
