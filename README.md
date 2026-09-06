@@ -37,6 +37,8 @@ See `docs/spec.md` for the architecture and `docs/adapters.md` for writing and d
 
 `skills/inlet/SKILL.md` teaches a coding agent how to mount the widget, write an adapter, and run a relayer.
 
+Recorded agent run: one `deposit` tool call moved 1 USDC from a Base Sepolia Gateway balance into Compound III on Base Sepolia in 16 seconds (Arc mint 0x2180a82f73e121449b52f616883ffa71a26c44b66eaee012edad9887f37e1a31, sweep 0x113d8d04186c5082eb9c54dbbd87b92a733d8db03d13ecbaa0c9b6f864fe80c1, execute 0xdcf11694a8160eec3413e20302a36cbb50a40ff93b7bbcc8508fcf44106e7cad).
+
 ## Live on testnet
 
 - Playground and docs: https://red-cliff-00b9f0703.6.azurestaticapps.net
