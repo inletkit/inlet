@@ -8,8 +8,13 @@ STYLES = {
     "backend": (PAPER2, INK, "rgba(245,245,245,0.40)", INK, None),
     "store": ("rgba(245,245,245,0.05)", MUTED, "rgba(191,192,192,0.50)", MUTED, None),
     "external": ("rgba(245,245,245,0.03)", "rgba(245,245,245,0.30)", "rgba(245,245,245,0.22)", SOFT, None),
-    "input": ("rgba(191,192,192,0.10)", SOFT, "rgba(142,152,172,0.40)", SOFT, None),
+    "input": ("rgba(201,160,220,0.14)", "#C9A0DC", "rgba(201,160,220,0.55)", "#C9A0DC", None),
     "optional": ("rgba(245,245,245,0.02)", "rgba(245,245,245,0.28)", "rgba(245,245,245,0.22)", SOFT, "4,3"),
+    "circle": ("rgba(1,115,195,0.22)", "#0173C3", "rgba(1,115,195,0.70)", "#5EB0EE", None),
+    "inlet": ("rgba(255,238,140,0.12)", "#FFEE8C", "rgba(255,238,140,0.50)", "#FFEE8C", None),
+    "escrow": ("rgba(240,182,213,0.14)", "#F0B6D5", "rgba(240,182,213,0.55)", "#F0B6D5", None),
+    "relayer": ("rgba(166,236,168,0.12)", "#A6ECA8", "rgba(166,236,168,0.55)", "#A6ECA8", None),
+    "relayer-optional": ("rgba(166,236,168,0.08)", "#A6ECA8", "rgba(166,236,168,0.55)", "#A6ECA8", "4,3"),
 }
 MONO = "'Geist Mono', monospace"
 SANS = "'Geist', sans-serif"
@@ -208,18 +213,18 @@ def architecture():
 
     # nodes
     s.node(72, 176, 144, 64, "input", "USER", "User wallet", "Privy or any wallet")
-    s.node(72, 320, 144, 64, "external", "CIRCLE", "Gateway balance", "unified USDC balance")
-    s.node(384, 176, 144, 64, "store", "ESCROW", "Deposit address", "per intent · CREATE2")
+    s.node(72, 320, 144, 64, "circle", "CIRCLE", "Gateway balance", "unified USDC balance")
+    s.node(384, 176, 144, 64, "escrow", "ESCROW", "Deposit address", "per intent · CREATE2")
     s.node(592, 176, 144, 64, "focal", "HUB", "Inlet hub", "sweep · refund")
-    s.node(384, 320, 144, 64, "external", "CIRCLE", "Attestation", "Iris API · signs burns")
-    s.node(592, 480, 144, 64, "optional", "SERVICE", "Relayer", "anyone can run one")
-    s.node(816, 176, 144, 64, "backend", "CONTRACT", "Inlet receiver", "verifies the CCTP mint")
-    s.node(1040, 176, 144, 64, "backend", "CONTRACT", "Adapter", "one per protocol")
+    s.node(384, 320, 144, 64, "circle", "CIRCLE", "Attestation", "Iris API · signs burns")
+    s.node(592, 480, 144, 64, "relayer-optional", "SERVICE", "Relayer", "anyone can run one")
+    s.node(816, 176, 144, 64, "inlet", "CONTRACT", "Inlet receiver", "verifies the CCTP mint")
+    s.node(1040, 176, 144, 64, "inlet", "CONTRACT", "Adapter", "one per protocol")
     s.node(1016, 320, 192, 80, "backend", "POSITION", "Protocol position", "Aave · Compound · Morpho", "Uniswap v4 · ERC 4626 vaults")
 
     s.legend_items(652, [
-        ("focal", "Settlement hub on Arc"), ("backend", "Inlet contract"), ("external", "Circle"), ("store", "Escrow"),
-        ("optional", "Relayer, permissionless"), (LEG_LINK, "Circle rail"), (LEG_ACCENT, "Settlement leg"), (LEG_DASH, "Refund or one time"),
+        ("focal", "Settlement hub on Arc"), ("inlet", "Inlet contract"), ("circle", "Circle"), ("escrow", "Escrow"),
+        ("backend", "Protocol position"), ("relayer-optional", "Relayer, permissionless"), (LEG_LINK, "Circle rail"), (LEG_ACCENT, "Settlement leg"), (LEG_DASH, "Refund or one time"),
     ])
     return s.render("Architecture · Inlet", "How a deposit moves through Inlet")
 
@@ -269,14 +274,14 @@ def sequence():
     def actor(cx, style, tag, name, sub):
         s.node(cx - 72, 56, 144, 56, style, tag, name, sub)
     actor(160, "input", "USER", "User wallet", "Privy or any wallet")
-    actor(400, "backend", "SERVICE", "Relayer", "anyone can run one")
-    actor(640, "external", "CIRCLE", "Circle", "Gateway · CCTP · Iris")
+    actor(400, "relayer", "SERVICE", "Relayer", "anyone can run one")
+    actor(640, "circle", "CIRCLE", "Circle", "Gateway · CCTP · Iris")
     actor(880, "focal", "ARC", "Arc hub", "Inlet hub · escrow")
-    actor(1120, "backend", "CHAIN", "Destination", "receiver · adapter")
+    actor(1120, "inlet", "CHAIN", "Destination", "receiver · adapter")
 
     s.legend_items(676, [
-        ("focal", "Settlement on Arc"), ("input", "User"), ("external", "Circle"), (LEG_LINK, "API call"),
-        (LEG_MUTED, "Transaction"), (LEG_DASH, "Return"), (LEG_ACCENT, "Position delivered"),
+        ("focal", "Settlement on Arc"), ("inlet", "Inlet contracts"), ("circle", "Circle"), ("relayer", "Relayer"), ("input", "User"),
+        (LEG_LINK, "API call"), (LEG_MUTED, "Transaction"), (LEG_DASH, "Return"), (LEG_ACCENT, "Position delivered"),
     ])
     return s.render("Sequence · Inlet", "One deposit, end to end")
 
@@ -321,20 +326,20 @@ def lifecycle():
 
     s.nodes.append(f'<circle cx="56" cy="216" r="6" fill="{INK}"/>')
     state(96, 176, "backend", "Created", "intent registered")
-    state(312, 176, "backend", "Funded", "USDC at deposit address")
-    state(528, 176, "backend", "Swept", "burned to destination")
-    state(744, 176, "backend", "Attested", "Circle attested")
+    state(312, 176, "escrow", "Funded", "USDC at deposit address")
+    state(528, 176, "circle", "Swept", "burned to destination")
+    state(744, 176, "circle", "Attested", "Circle attested")
     state(960, 176, "focal", "Executed", "position delivered")
-    state(312, 336, "store", "Refunding", "burned back to source")
-    state(528, 336, "store", "Refunded", "USDC back in the wallet")
-    state(960, 336, "store", "Claimable", "user can claim USDC")
+    state(312, 336, "circle", "Refunding", "burned back to source")
+    state(528, 336, "input", "Refunded", "USDC back in the wallet")
+    state(960, 336, "inlet", "Claimable", "user can claim USDC")
     state(96, 496, "store", "Expired", "nothing arrived · final")
     for cy in (216, 376):
         s.nodes.append(f'<circle cx="1176" cy="{cy}" r="8" fill="none" stroke="{INK}" stroke-width="1"/><circle cx="1176" cy="{cy}" r="5" fill="{INK}"/>')
 
     s.legend_items(652, [
-        ("focal", "Goal state"), ("backend", "In flight"), ("store", "Safety state, final"), (LEG_ACCENT, "Happy path"),
-        (LEG_MUTED, "Transition"), (LEG_DASH, "Safety transition"),
+        ("focal", "Goal"), ("backend", "Waiting"), ("escrow", "Escrow on Arc"), ("circle", "Circle rail"), ("inlet", "Receiver holds"),
+        ("input", "User holds"), ("store", "Final"), (LEG_ACCENT, "Happy path"), (LEG_MUTED, "Transition"), (LEG_DASH, "Safety"),
     ])
     return s.render("State machine · Inlet", "Intent lifecycle")
 
@@ -346,43 +351,43 @@ def deployment():
     s.zone(552, 96, 240, 208, "CIRCLE · TESTNET", dashed=True)
     s.zone(824, 96, 416, 504, "TESTNETS", dashed=True)
 
-    s.path("M 200,376 H 216 Q 224,376 224,368 V 208 Q 224,200 232,200 H 256", LINK, marker="arrow-link")          # browser -> playground
-    s.line(200, 408, 256, 408, LINK, marker="arrow-link")                                                            # browser -> relayer
-    s.path("M 120,344 V 88 Q 120,80 128,80 H 712 Q 720,80 720,88 V 152", LINK, marker="arrow-link")              # browser -> circle
-    s.path("M 120,440 V 512 Q 120,520 128,520 H 1024 Q 1032,520 1032,512 V 472", LINK, marker="arrow-link")        # browser -> evm chains
-    s.path("M 400,344 V 324 Q 400,316 408,316 H 712 Q 720,316 720,308 V 280", LINK, marker="arrow-link")          # relayer -> circle
-    s.path("M 496,384 H 808 Q 816,384 816,376 V 208 Q 816,200 824,200 H 856", LINK, marker="arrow-link")          # relayer -> arc
-    s.line(496, 428, 856, 428, LINK, marker="arrow-link")                                                            # relayer -> evm chains
+    s.path("M 200,376 H 216 Q 224,376 224,368 V 208 Q 224,200 232,200 H 256")          # browser -> playground
+    s.line(200, 408, 256, 408)                                                            # browser -> relayer
+    s.path("M 120,344 V 88 Q 120,80 128,80 H 712 Q 720,80 720,88 V 152")              # browser -> circle
+    s.path("M 120,440 V 512 Q 120,520 128,520 H 1024 Q 1032,520 1032,512 V 472")        # browser -> evm chains
+    s.path("M 400,344 V 324 Q 400,316 408,316 H 712 Q 720,316 720,308 V 280")          # relayer -> circle
+    s.path("M 496,384 H 808 Q 816,384 816,376 V 208 Q 816,200 824,200 H 856")          # relayer -> arc
+    s.line(496, 428, 856, 428)                                                            # relayer -> evm chains
     s.line(1032, 248, 1032, 344, ACCENT, dashed="5,4", marker="arrow-accent", width=1)                             # arc -> evm chains (cctp)
 
-    s.label(232, 280, "HTTPS", LINK, w=36)
-    s.label(210, 388, "HTTPS", LINK, w=36)
-    s.label(360, 60, "GATEWAY API", LINK)
-    s.label(560, 500, "WALLET RPC", LINK)
-    s.label(528, 296, "CIRCLE APIS", LINK)
-    s.label(824, 280, "ARC RPC", LINK)
-    s.label(636, 408, "RPC · EXECUTE", LINK)
+    s.label(232, 280, "HTTPS", w=36)
+    s.label(210, 388, "HTTPS", w=36)
+    s.label(360, 60, "GATEWAY API")
+    s.label(560, 500, "WALLET RPC")
+    s.label(528, 296, "CIRCLE APIS")
+    s.label(824, 280, "ARC RPC")
+    s.label(636, 408, "RPC · EXECUTE")
     s.label(1040, 288, "CCTP V2", ACCENT)
 
     s.node(40, 344, 160, 96, "input", "CLIENT", "User's browser", "Privy or any wallet")
     s.chip(48, 408, 144, "Inlet widget", "Privy")
     s.node(256, 152, 240, 96, "external", "MANAGED", "inlet-playground", "Static Web App · Free tier")
     s.chip(264, 216, 224, "Next.js static export", "16.3")
-    s.node(256, 344, 240, 128, "backend", "MANAGED", "inlet-relayer", "Container App · 0.5 vCPU · 1 GiB", badge="x1")
+    s.node(256, 344, 240, 128, "relayer", "MANAGED", "inlet-relayer", "Container App · 0.5 vCPU · 1 GiB", badge="x1")
     s.chip(264, 408, 224, "Fastify + node:sqlite", "node 24")
     s.chip(264, 440, 224, "Azure Files share", "inlet.db")
-    s.node(576, 152, 192, 128, "external", "MANAGED", "Circle testnet APIs", "sandbox endpoints")
+    s.node(576, 152, 192, 128, "circle", "MANAGED", "Circle testnet APIs", "sandbox endpoints")
     s.chip(584, 216, 176, "Iris attestations", "v2")
     s.chip(584, 248, 176, "Gateway API", "v1")
     s.node(856, 152, 352, 96, "focal", "L1", "Arc testnet", "chain 5042002 · CCTP domain 26")
     s.chip(864, 216, 336, "InletHub", "0x84f3…408B")
-    s.node(856, 344, 352, 128, "backend", "EVM", "Sepolia testnets", "Arbitrum 3 · Base 6 · Unichain 10")
+    s.node(856, 344, 352, 128, "inlet", "EVM", "Sepolia testnets", "Arbitrum 3 · Base 6 · Unichain 10")
     s.chip(864, 408, 336, "receivers", "Arbitrum, Base, Unichain Sepolia")
     s.chip(864, 440, 336, "adapters", "Aave, Compound, Morpho, Uniswap, ERC 4626")
 
     s.legend_items(652, [
-        ("focal", "New on Arc"), ("backend", "Runs Inlet code"), ("external", "Managed service"), ("input", "Client"),
-        (LEG_LINK, "Network path"), (LEG_DASH_ACCENT, "CCTP burn and mint"),
+        ("focal", "New on Arc"), ("inlet", "Inlet contracts"), ("relayer", "Runs Inlet code"), ("circle", "Circle"), ("external", "Managed service"),
+        ("input", "Client"), (LEG_MUTED, "Network path"), (LEG_DASH_ACCENT, "CCTP burn and mint"),
     ])
     return s.render("Deployment · Inlet", "Where Inlet runs on testnet")
 

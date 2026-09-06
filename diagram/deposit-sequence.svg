@@ -67,21 +67,21 @@
 <rect x="230" y="612" width="100" height="12" rx="2" fill="#2d3142"/>
 <text x="280" y="621" fill="#f08a59" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">POSITION DELIVERED</text>
 <rect x="88" y="56" width="144" height="56" rx="6" fill="#2d3142"/>
-<rect x="88" y="56" width="144" height="56" rx="6" fill="rgba(191,192,192,0.10)" stroke="#8e98ac" stroke-width="1"/>
-<rect x="96" y="64" width="32" height="12" rx="2" fill="transparent" stroke="rgba(142,152,172,0.40)" stroke-width="0.8"/>
-<text x="112" y="73" fill="#8e98ac" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">USER</text>
+<rect x="88" y="56" width="144" height="56" rx="6" fill="rgba(201,160,220,0.14)" stroke="#C9A0DC" stroke-width="1"/>
+<rect x="96" y="64" width="32" height="12" rx="2" fill="transparent" stroke="rgba(201,160,220,0.55)" stroke-width="0.8"/>
+<text x="112" y="73" fill="#C9A0DC" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">USER</text>
 <text x="160" y="92" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">User wallet</text>
 <text x="160" y="108" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">Privy or any wallet</text>
 <rect x="328" y="56" width="144" height="56" rx="6" fill="#2d3142"/>
-<rect x="328" y="56" width="144" height="56" rx="6" fill="#393e53" stroke="#f5f5f5" stroke-width="1"/>
-<rect x="336" y="64" width="44" height="12" rx="2" fill="transparent" stroke="rgba(245,245,245,0.40)" stroke-width="0.8"/>
-<text x="358" y="73" fill="#f5f5f5" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SERVICE</text>
+<rect x="328" y="56" width="144" height="56" rx="6" fill="rgba(166,236,168,0.12)" stroke="#A6ECA8" stroke-width="1"/>
+<rect x="336" y="64" width="44" height="12" rx="2" fill="transparent" stroke="rgba(166,236,168,0.55)" stroke-width="0.8"/>
+<text x="358" y="73" fill="#A6ECA8" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SERVICE</text>
 <text x="400" y="92" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Relayer</text>
 <text x="400" y="108" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">anyone can run one</text>
 <rect x="568" y="56" width="144" height="56" rx="6" fill="#2d3142"/>
-<rect x="568" y="56" width="144" height="56" rx="6" fill="rgba(245,245,245,0.03)" stroke="rgba(245,245,245,0.30)" stroke-width="1"/>
-<rect x="576" y="64" width="40" height="12" rx="2" fill="transparent" stroke="rgba(245,245,245,0.22)" stroke-width="0.8"/>
-<text x="596" y="73" fill="#8e98ac" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">CIRCLE</text>
+<rect x="568" y="56" width="144" height="56" rx="6" fill="rgba(1,115,195,0.22)" stroke="#0173C3" stroke-width="1"/>
+<rect x="576" y="64" width="40" height="12" rx="2" fill="transparent" stroke="rgba(1,115,195,0.70)" stroke-width="0.8"/>
+<text x="596" y="73" fill="#5EB0EE" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">CIRCLE</text>
 <text x="640" y="92" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Circle</text>
 <text x="640" y="108" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">Gateway · CCTP · Iris</text>
 <rect x="808" y="56" width="144" height="56" rx="6" fill="#2d3142"/>
@@ -91,25 +91,29 @@
 <text x="880" y="92" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Arc hub</text>
 <text x="880" y="108" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">Inlet hub · escrow</text>
 <rect x="1048" y="56" width="144" height="56" rx="6" fill="#2d3142"/>
-<rect x="1048" y="56" width="144" height="56" rx="6" fill="#393e53" stroke="#f5f5f5" stroke-width="1"/>
-<rect x="1056" y="64" width="36" height="12" rx="2" fill="transparent" stroke="rgba(245,245,245,0.40)" stroke-width="0.8"/>
-<text x="1074" y="73" fill="#f5f5f5" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">CHAIN</text>
+<rect x="1048" y="56" width="144" height="56" rx="6" fill="rgba(255,238,140,0.12)" stroke="#FFEE8C" stroke-width="1"/>
+<rect x="1056" y="64" width="36" height="12" rx="2" fill="transparent" stroke="rgba(255,238,140,0.50)" stroke-width="0.8"/>
+<text x="1074" y="73" fill="#FFEE8C" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">CHAIN</text>
 <text x="1120" y="92" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Destination</text>
 <text x="1120" y="108" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">receiver · adapter</text>
 <line x1="40" y1="668" x2="1240" y2="668" stroke="rgba(245,245,245,0.10)" stroke-width="0.8"/>
 <text x="40" y="684" fill="#bfc0c0" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.18em">LEGEND</text>
 <rect x="40" y="700" width="14" height="10" rx="2" fill="rgba(240,138,89,0.10)" stroke="#f08a59" stroke-width="1"/>
 <text x="60" y="708" fill="#bfc0c0" font-size="8" font-family="'Geist', sans-serif">Settlement on Arc</text>
-<rect x="164" y="700" width="14" height="10" rx="2" fill="rgba(191,192,192,0.10)" stroke="#8e98ac" stroke-width="1"/>
-<text x="184" y="708" fill="#bfc0c0" font-size="8" font-family="'Geist', sans-serif">User</text>
-<rect x="228" y="700" width="14" height="10" rx="2" fill="rgba(245,245,245,0.03)" stroke="rgba(245,245,245,0.30)" stroke-width="1"/>
-<text x="248" y="708" fill="#bfc0c0" font-size="8" font-family="'Geist', sans-serif">Circle</text>
-<line x1="300" y1="705" x2="328" y2="705" stroke="#6a95d8" stroke-width="1.2" marker-end="url(#arrow-link)"/>
-<text x="336" y="708" fill="#bfc0c0" font-size="8" font-family="'Geist', sans-serif">API call</text>
-<line x1="400" y1="705" x2="428" y2="705" stroke="#bfc0c0" stroke-width="1.2" marker-end="url(#arrow)"/>
-<text x="436" y="708" fill="#bfc0c0" font-size="8" font-family="'Geist', sans-serif">Transaction</text>
-<line x1="512" y1="705" x2="540" y2="705" stroke="#bfc0c0" stroke-width="1" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
-<text x="548" y="708" fill="#bfc0c0" font-size="8" font-family="'Geist', sans-serif">Return</text>
-<line x1="600" y1="705" x2="628" y2="705" stroke="#f08a59" stroke-width="1.4" marker-end="url(#arrow-accent)"/>
-<text x="636" y="708" fill="#bfc0c0" font-size="8" font-family="'Geist', sans-serif">Position delivered</text>
+<rect x="164" y="700" width="14" height="10" rx="2" fill="rgba(255,238,140,0.12)" stroke="#FFEE8C" stroke-width="1"/>
+<text x="184" y="708" fill="#bfc0c0" font-size="8" font-family="'Geist', sans-serif">Inlet contracts</text>
+<rect x="280" y="700" width="14" height="10" rx="2" fill="rgba(1,115,195,0.22)" stroke="#0173C3" stroke-width="1"/>
+<text x="300" y="708" fill="#bfc0c0" font-size="8" font-family="'Geist', sans-serif">Circle</text>
+<rect x="352" y="700" width="14" height="10" rx="2" fill="rgba(166,236,168,0.12)" stroke="#A6ECA8" stroke-width="1"/>
+<text x="372" y="708" fill="#bfc0c0" font-size="8" font-family="'Geist', sans-serif">Relayer</text>
+<rect x="432" y="700" width="14" height="10" rx="2" fill="rgba(201,160,220,0.14)" stroke="#C9A0DC" stroke-width="1"/>
+<text x="452" y="708" fill="#bfc0c0" font-size="8" font-family="'Geist', sans-serif">User</text>
+<line x1="496" y1="705" x2="524" y2="705" stroke="#6a95d8" stroke-width="1.2" marker-end="url(#arrow-link)"/>
+<text x="532" y="708" fill="#bfc0c0" font-size="8" font-family="'Geist', sans-serif">API call</text>
+<line x1="596" y1="705" x2="624" y2="705" stroke="#bfc0c0" stroke-width="1.2" marker-end="url(#arrow)"/>
+<text x="632" y="708" fill="#bfc0c0" font-size="8" font-family="'Geist', sans-serif">Transaction</text>
+<line x1="708" y1="705" x2="736" y2="705" stroke="#bfc0c0" stroke-width="1" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
+<text x="744" y="708" fill="#bfc0c0" font-size="8" font-family="'Geist', sans-serif">Return</text>
+<line x1="796" y1="705" x2="824" y2="705" stroke="#f08a59" stroke-width="1.4" marker-end="url(#arrow-accent)"/>
+<text x="832" y="708" fill="#bfc0c0" font-size="8" font-family="'Geist', sans-serif">Position delivered</text>
     </svg>
