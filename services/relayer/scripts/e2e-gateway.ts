@@ -70,7 +70,11 @@ try {
     await new Promise((resolve) => setTimeout(resolve, 3000));
   }
 
-  const after = await destination.position(user.address);
+  let after = await destination.position(user.address);
+  for (let attempt = 0; attempt < 10 && after === before; attempt++) {
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+    after = await destination.position(user.address);
+  }
   console.log(`${stamp()} ${destination.positionLabel} before ${before} after ${after}`);
 } finally {
   await relayer.stop();
