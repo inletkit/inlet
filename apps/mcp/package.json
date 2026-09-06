@@ -1,0 +1,26 @@
+{
+  "name": "@inletkit/mcp",
+  "version": "0.1.0",
+  "description": "MCP server that lets agents deposit USDC from any chain into any position through Inlet.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "inlet-mcp": "./dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "dev": "tsx src/index.ts",
+    "start": "node dist/index.js",
+    "probe": "node scripts/probe.mjs dist/index.js"
+  },
+  "dependencies": {
+    "@inletkit/sdk": "workspace:*",
+    "@modelcontextprotocol/sdk": "^1.20.0",
+    "viem": "^2.56.3",
+    "zod": "^4.0.0"
+  }
+}
