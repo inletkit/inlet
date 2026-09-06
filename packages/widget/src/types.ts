@@ -37,12 +37,17 @@ export type RoutePreference = Route | "auto";
 
 export interface Quote {
   route: Route;
+  sourceDomain: number;
   sendAmount: bigint;
   intentAmount: bigint;
   circleFee: bigint;
   walletUsdc: bigint;
   gatewayAvailable: bigint;
+  gatewayBalances: Record<number, bigint>;
+  gatewayElsewhere?: number;
   needsGas: boolean;
+  ready: boolean;
+  blocker?: string;
 }
 
 export type Phase = "idle" | "quoting" | "ready" | "creating" | "signing" | "sending" | "tracking" | "done" | "error";
