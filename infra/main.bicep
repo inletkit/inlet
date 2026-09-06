@@ -16,7 +16,13 @@ param relayerPrivateKey string
 param arcRpc string = 'https://rpc.testnet.arc.io'
 param baseSepoliaRpc string = 'https://sepolia.base.org'
 param arbitrumSepoliaRpc string = 'https://sepolia-rollup.arbitrum.io/rpc'
+param unichainSepoliaRpc string = 'https://sepolia.unichain.org'
+param ethereumSepoliaRpc string = 'https://ethereum-sepolia-rpc.publicnode.com'
 param corsOrigin string = '*'
+
+@secure()
+@description('Uniswap Trading API key used for live pool quotes. Optional.')
+param uniswapApiKey string = ''
 param relayerImage string = ''
 
 resource group 'Microsoft.Resources/resourceGroups@2024-03-01' = {
@@ -35,7 +41,10 @@ module resources './resources.bicep' = {
     arcRpc: arcRpc
     baseSepoliaRpc: baseSepoliaRpc
     arbitrumSepoliaRpc: arbitrumSepoliaRpc
+    unichainSepoliaRpc: unichainSepoliaRpc
+    ethereumSepoliaRpc: ethereumSepoliaRpc
     corsOrigin: corsOrigin
+    uniswapApiKey: uniswapApiKey
     relayerImage: relayerImage
   }
 }

@@ -6,6 +6,7 @@
     "location": { "value": "${AZURE_LOCATION}" },
     "relayerPrivateKey": { "value": "${RELAYER_PRIVATE_KEY}" },
     "corsOrigin": { "value": "${CORS_ORIGIN=*}" },
+    "uniswapApiKey": { "value": "${UNISWAP_API_KEY=}" },
     "relayerImage": { "value": "${SERVICE_RELAYER_IMAGE_NAME=}" }
   }
 }

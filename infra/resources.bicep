@@ -5,7 +5,11 @@ param relayerPrivateKey string
 param arcRpc string
 param baseSepoliaRpc string
 param arbitrumSepoliaRpc string
+param unichainSepoliaRpc string
+param ethereumSepoliaRpc string
 param corsOrigin string
+@secure()
+param uniswapApiKey string = ''
 param relayerImage string = ''
 
 var suffix = toLower(uniqueString(resourceGroup().id))
@@ -104,7 +108,10 @@ resource relayer 'Microsoft.App/containerApps@2024-03-01' = {
     configuration: {
       ingress: { external: true, targetPort: 8787, transport: 'http' }
       registries: [{ server: registry.properties.loginServer, identity: identity.id }]
-      secrets: [{ name: 'relayer-private-key', value: relayerPrivateKey }]
+      secrets: [
+        { name: 'relayer-private-key', value: relayerPrivateKey }
+        { name: 'uniswap-api-key', value: uniswapApiKey }
+      ]
     }
     template: {
       containers: [
@@ -120,7 +127,10 @@ resource relayer 'Microsoft.App/containerApps@2024-03-01' = {
             { name: 'ARC_RPC', value: arcRpc }
             { name: 'BASE_SEPOLIA_RPC', value: baseSepoliaRpc }
             { name: 'ARBITRUM_SEPOLIA_RPC', value: arbitrumSepoliaRpc }
+            { name: 'UNICHAIN_SEPOLIA_RPC', value: unichainSepoliaRpc }
+            { name: 'ETHEREUM_SEPOLIA_RPC', value: ethereumSepoliaRpc }
             { name: 'CORS_ORIGIN', value: corsOrigin }
+            { name: 'UNISWAP_API_KEY', secretRef: 'uniswap-api-key' }
           ]
           volumeMounts: [{ volumeName: 'data', mountPath: '/data' }]
           probes: [
