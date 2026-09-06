@@ -1,4 +1,4 @@
-import { aaveV3AdapterData, adapterId, compoundV3AdapterData, demoVaultAbi, erc4626AdapterData, testnetChains, testnetDeployments, testnetProtocols, toBytes32 } from "@inletkit/sdk";
+import { aaveV3AdapterData, adapterId, compoundV3AdapterData, demoVaultAbi, erc4626AdapterData, testnetChains, testnetDeployments, testnetProtocols, toBytes32, uniswapV4LpAdapterData } from "@inletkit/sdk";
 import { createPublicClient, erc20Abi, http, type Address, type Chain, type Hex, type PublicClient } from "viem";
 import { arbitrumSepolia, baseSepolia, sepolia, unichainSepolia } from "viem/chains";
 
@@ -17,6 +17,7 @@ const rpc = (key: keyof typeof testnetChains) => (testnetChains[key] as { rpc: s
 
 const arbitrum = createPublicClient({ chain: arbitrumSepolia, transport: http(rpc("arbitrumSepolia")) }) as PublicClient;
 const base = createPublicClient({ chain: baseSepolia, transport: http(rpc("baseSepolia")) }) as PublicClient;
+const unichain = createPublicClient({ chain: unichainSepolia, transport: http(rpc("unichainSepolia")) }) as PublicClient;
 
 function balanceReader(client: PublicClient, token: Address) {
   return (user: Address) => client.readContract({ address: token, abi: erc20Abi, functionName: "balanceOf", args: [user] });
@@ -62,6 +63,26 @@ export const destinations: Record<string, E2eDestination> = {
     adapterData: erc4626AdapterData(testnetProtocols.baseSepolia.morphoOneshotVault as Address, 0n),
     positionLabel: "vUSDC shares",
     position: balanceReader(base, testnetProtocols.baseSepolia.morphoOneshotVault as Address),
+  },
+  uniswap: {
+    name: "Uniswap v4 ETH/USDC on Unichain Sepolia",
+    domain: 10,
+    chain: unichainSepolia,
+    receiver: testnetDeployments.unichainSepolia.inletReceiver as Address,
+    adapterId: adapterId("uniswap-v4-lp:v1"),
+    adapterData: uniswapV4LpAdapterData(
+      {
+        currency0: "0x0000000000000000000000000000000000000000",
+        currency1: testnetChains.unichainSepolia.usdc as Address,
+        fee: testnetProtocols.unichainSepolia.ethUsdcPool.fee,
+        tickSpacing: testnetProtocols.unichainSepolia.ethUsdcPool.tickSpacing,
+        hooks: "0x0000000000000000000000000000000000000000",
+      },
+      1200,
+      1n,
+    ),
+    positionLabel: "Uniswap v4 positions owned",
+    position: balanceReader(unichain, testnetProtocols.unichainSepolia.uniswapV4PositionManager as Address),
   },
 };
 

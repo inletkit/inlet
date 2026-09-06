@@ -15,5 +15,8 @@ export {
   findDestination,
   morphoBaseSepoliaDestination,
   testnetDestinations,
+  unichainEthUsdcPool,
+  uniswapUnichainSepoliaDestination,
+  uniswapV4LpDestination,
 } from "./config.js";
 export type { DepositState, Destination, Phase, Quote, RoutePreference, SourceChain } from "./types.js";

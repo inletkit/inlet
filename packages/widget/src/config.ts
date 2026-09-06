@@ -1,4 +1,4 @@
-import { aaveV3AdapterData, adapterId, compoundV3AdapterData, erc4626AdapterData, fromBytes32, testnetChains, testnetDeployments, testnetProtocols, type IntentRecord } from "@inletkit/sdk";
+import { aaveV3AdapterData, adapterId, compoundV3AdapterData, erc4626AdapterData, fromBytes32, testnetChains, testnetDeployments, testnetProtocols, uniswapV4LpAdapterData, type IntentRecord, type PoolKey } from "@inletkit/sdk";
 import type { Address } from "viem";
 import type { Destination, SourceChain } from "./types.js";
 
@@ -104,6 +104,29 @@ export function compoundV3Destination(params: {
   };
 }
 
+export function uniswapV4LpDestination(params: {
+  id: string;
+  name: string;
+  description?: string;
+  destinationDomain: number;
+  receiver: Address;
+  pool: PoolKey;
+  rangeTicks?: number;
+  positionLabel?: string;
+}): Destination {
+  return {
+    id: params.id,
+    name: params.name,
+    description: params.description,
+    destinationDomain: params.destinationDomain,
+    receiver: params.receiver,
+    adapterId: adapterId("uniswap-v4-lp:v1"),
+    adapterData: () => uniswapV4LpAdapterData(params.pool, params.rangeTicks ?? 1200, 1n),
+    positionLabel: params.positionLabel ?? "liquidity position",
+    explorer: explorers[params.destinationDomain] ?? "",
+  };
+}
+
 export const demoVaultDestination = erc4626Destination({
   id: "demo-vault",
   name: "Inlet Demo Vault",
@@ -143,7 +166,31 @@ export const morphoBaseSepoliaDestination = erc4626Destination({
   positionLabel: "vUSDC shares",
 });
 
-export const testnetDestinations: Destination[] = [aaveArbitrumSepoliaDestination, compoundBaseSepoliaDestination, morphoBaseSepoliaDestination, demoVaultDestination];
+export const unichainEthUsdcPool: PoolKey = {
+  currency0: "0x0000000000000000000000000000000000000000",
+  currency1: testnetChains.unichainSepolia.usdc as Address,
+  fee: testnetProtocols.unichainSepolia.ethUsdcPool.fee,
+  tickSpacing: testnetProtocols.unichainSepolia.ethUsdcPool.tickSpacing,
+  hooks: "0x0000000000000000000000000000000000000000",
+};
+
+export const uniswapUnichainSepoliaDestination = uniswapV4LpDestination({
+  id: "uniswap-v4-eth-usdc-unichain-sepolia",
+  name: "Uniswap v4 ETH/USDC on Unichain Sepolia",
+  description: "Mints a USDC only liquidity position just below the current ETH price in the v4 pool. You own the position NFT.",
+  destinationDomain: 10,
+  receiver: testnetDeployments.unichainSepolia.inletReceiver as Address,
+  pool: unichainEthUsdcPool,
+  positionLabel: "Uniswap v4 position",
+});
+
+export const testnetDestinations: Destination[] = [
+  aaveArbitrumSepoliaDestination,
+  compoundBaseSepoliaDestination,
+  morphoBaseSepoliaDestination,
+  uniswapUnichainSepoliaDestination,
+  demoVaultDestination,
+];
 
 export function findDestination(record: Pick<IntentRecord, "intent">, candidates: Destination[] = testnetDestinations): Destination | undefined {
   const sameRoute = candidates.filter(
