@@ -11,6 +11,16 @@ export interface Destination {
   adapterData: (context: { beneficiary: Address; amount: bigint }) => Hex;
   positionLabel: string;
   explorer: string;
+  price?: PriceHint;
+}
+
+export interface PriceHint {
+  chainId: number;
+  tokenIn: Address;
+  tokenOut: Address;
+  tokenOutSymbol: string;
+  tokenOutDecimals: number;
+  venue: string;
 }
 
 export interface SourceChain {

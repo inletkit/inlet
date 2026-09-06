@@ -19,4 +19,4 @@ export {
   uniswapUnichainSepoliaDestination,
   uniswapV4LpDestination,
 } from "./config.js";
-export type { DepositState, Destination, Phase, Quote, RoutePreference, SourceChain } from "./types.js";
+export type { DepositState, Destination, Phase, PriceHint, Quote, RoutePreference, SourceChain } from "./types.js";

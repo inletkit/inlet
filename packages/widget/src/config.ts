@@ -1,6 +1,6 @@
 import { aaveV3AdapterData, adapterId, compoundV3AdapterData, erc4626AdapterData, fromBytes32, testnetChains, testnetDeployments, testnetProtocols, uniswapV4LpAdapterData, type IntentRecord, type PoolKey } from "@inletkit/sdk";
 import type { Address } from "viem";
-import type { Destination, SourceChain } from "./types.js";
+import type { Destination, PriceHint, SourceChain } from "./types.js";
 
 export const explorers: Record<number, string> = {
   0: "https://sepolia.etherscan.io/tx/",
@@ -113,6 +113,7 @@ export function uniswapV4LpDestination(params: {
   pool: PoolKey;
   rangeTicks?: number;
   positionLabel?: string;
+  price?: PriceHint;
 }): Destination {
   return {
     id: params.id,
@@ -124,6 +125,7 @@ export function uniswapV4LpDestination(params: {
     adapterData: () => uniswapV4LpAdapterData(params.pool, params.rangeTicks ?? 1200, 1n),
     positionLabel: params.positionLabel ?? "liquidity position",
     explorer: explorers[params.destinationDomain] ?? "",
+    price: params.price,
   };
 }
 
@@ -182,6 +184,14 @@ export const uniswapUnichainSepoliaDestination = uniswapV4LpDestination({
   receiver: testnetDeployments.unichainSepolia.inletReceiver as Address,
   pool: unichainEthUsdcPool,
   positionLabel: "Uniswap v4 position",
+  price: {
+    chainId: testnetChains.unichainSepolia.chainId,
+    tokenIn: testnetChains.unichainSepolia.usdc as Address,
+    tokenOut: "0x0000000000000000000000000000000000000000",
+    tokenOutSymbol: "ETH",
+    tokenOutDecimals: 18,
+    venue: "Uniswap Trading API",
+  },
 });
 
 export const testnetDestinations: Destination[] = [

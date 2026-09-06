@@ -1,5 +1,6 @@
-import { InletRelayerClient } from "@inletkit/sdk";
+import { InletRelayerClient, type UniswapQuote } from "@inletkit/sdk";
 import { useEffect, useRef, useState } from "react";
+import { formatUnits, parseUnits } from "viem";
 import { useAccount, useConnect, useDisconnect } from "wagmi";
 import { defaultSources } from "../config.js";
 import { useInlet } from "../context.js";
@@ -66,6 +67,32 @@ export function DepositWidget({ destinations, relayerUrl, sources = defaultSourc
     }, 400);
     return () => clearTimeout(handle);
   }, [amount, preference, isConnected, address, source, destination, quote]);
+
+  const [price, setPrice] = useState<{ quote: UniswapQuote; amount: string } | undefined>();
+  useEffect(() => {
+    const hint = destination?.price;
+    setPrice(undefined);
+    if (!hint || relayerStatus !== "online") return;
+    let amountIn: bigint;
+    try {
+      amountIn = parseUnits(amount || "0", 6);
+    } catch {
+      return;
+    }
+    if (amountIn <= 0n) return;
+    let stopped = false;
+    const client = new InletRelayerClient(url, 20_000);
+    const handle = setTimeout(() => {
+      client
+        .uniswapQuote({ chainId: hint.chainId, tokenIn: hint.tokenIn, tokenOut: hint.tokenOut, amount: amountIn })
+        .then((quote) => !stopped && setPrice({ quote, amount }))
+        .catch(() => !stopped && setPrice(undefined));
+    }, 500);
+    return () => {
+      stopped = true;
+      clearTimeout(handle);
+    };
+  }, [destination, amount, url, relayerStatus]);
 
   const busy = ["creating", "signing", "sending"].includes(state.phase);
   const quoting = state.phase === "quoting";
@@ -165,6 +192,15 @@ export function DepositWidget({ destinations, relayerUrl, sources = defaultSourc
                 <dt>Gateway balance</dt>
                 <dd>{usdc(state.quote.gatewayAvailable)}</dd>
               </div>
+              {destination?.price && price ? (
+                <div>
+                  <dt>Pool price now</dt>
+                  <dd>
+                    {price.amount} USDC buys {Number(formatUnits(BigInt(price.quote.amountOut), destination.price.tokenOutDecimals)).toPrecision(5)} {destination.price.tokenOutSymbol} via{" "}
+                    {price.quote.route.map((hop) => hop.type).join(", ") || "the pool"}, from the {destination.price.venue}
+                  </dd>
+                </div>
+              ) : null}
             </dl>
           ) : null}
 
