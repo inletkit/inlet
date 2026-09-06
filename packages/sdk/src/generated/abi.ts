@@ -1385,6 +1385,75 @@ export const aaveV3AdapterAbi = [
   }
 ] as const;
 
+export const compoundV3AdapterAbi = [
+  {
+    "type": "function",
+    "name": "deposit",
+    "inputs": [
+      {
+        "name": "usdc",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "beneficiary",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "data",
+        "type": "bytes",
+        "internalType": "bytes"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes",
+        "internalType": "bytes"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "error",
+    "name": "SafeERC20FailedOperation",
+    "inputs": [
+      {
+        "name": "token",
+        "type": "address",
+        "internalType": "address"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "TooLittleSupplied",
+    "inputs": [
+      {
+        "name": "gained",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "minimum",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "WrongBaseToken",
+    "inputs": []
+  }
+] as const;
+
 export const demoVaultAbi = [
   {
     "type": "constructor",

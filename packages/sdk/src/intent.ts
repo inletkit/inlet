@@ -62,6 +62,10 @@ export function aaveV3AdapterData(pool: Address, minATokens: bigint = 0n): Hex {
   return encodeAbiParameters([{ type: "address" }, { type: "uint256" }], [pool, minATokens]);
 }
 
+export function compoundV3AdapterData(comet: Address, minSupplied: bigint = 0n): Hex {
+  return encodeAbiParameters([{ type: "address" }, { type: "uint256" }], [comet, minSupplied]);
+}
+
 export function serializeIntent(intent: DepositIntent) {
   return {
     ...intent,
